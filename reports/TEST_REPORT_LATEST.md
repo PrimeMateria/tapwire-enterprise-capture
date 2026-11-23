@@ -1,7 +1,7 @@
 # Wireshark LexLean & PrismPM Verification Report
 
 **Status**: ✅ PASSED  
-**Execution Timestamp**: `2026-11-23T15:44:01.649194+00:00`  
+**Execution Timestamp**: `2026-11-23T16:01:21.396676+00:00`  
 **Target Directory**: [`/run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production)  
 **Governing ADR**: [`docs/ADR-0029.md`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/docs/ADR-0029.md) (LaTeX: [`docs/adr/adr-0002-production-test-harness-ci-cd.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/docs/adr/adr-0002-production-test-harness-ci-cd.tex))  
 **Predecessor ADR**: [`docs/adr/adr-0001-network-capture-alert-integration.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/docs/adr/adr-0001-network-capture-alert-integration.tex)  
@@ -33,14 +33,14 @@
 
 | Suite ID | Test Name | Target / Command | Result | Duration |
 | :--- | :--- | :--- | :--- | :--- |
-| TS-01 | Toolchain Pin & Runtime Environment | `lean, lake, lexlean, prismpm` | ✅ PASS | 0.250s |
-| TS-02 | Canonical Format & Lock Parity | `lexlean fmt --all --check && lexlean lock --check` | ✅ PASS | 1.607s |
-| TS-03 | Lean Lake Host Build & Hygiene | `lake build --allow-empty` | ✅ PASS | 0.163s |
-| TS-04 | Semantic IR AST & Module Type Check | `lexlean check --all` | ✅ PASS | 0.758s |
-| TS-05 | Lean 4 Kernel Formal Verification & Attestation | `lexlean verify --all` | ✅ PASS | 327.622s |
-| TS-06 | Formal Declaration & Threshold Audit | `14 modules, 52 theorems, 99 defs, 39 structs, 24 inductives` | ✅ PASS | 0.003s |
+| TS-01 | Toolchain Pin & Runtime Environment | `lean, lake, lexlean, prismpm` | ✅ PASS | 0.339s |
+| TS-02 | Canonical Format & Lock Parity | `lexlean fmt --all --check && lexlean lock --check` | ✅ PASS | 1.472s |
+| TS-03 | Lean Lake Host Build & Hygiene | `lake build --allow-empty` | ✅ PASS | 0.172s |
+| TS-04 | Semantic IR AST & Module Type Check | `lexlean check --all` | ✅ PASS | 0.804s |
+| TS-05 | Lean 4 Kernel Formal Verification & Attestation | `lexlean verify --all` | ✅ PASS | 320.374s |
+| TS-06 | Formal Declaration & Threshold Audit | `14 modules, 52 theorems, 99 defs, 39 structs, 24 inductives` | ✅ PASS | 0.004s |
 | TS-07 | Build & Attestation Artifact Audit | `.lexlean/ verified attestation storage, locks, production request` | ✅ PASS | 0.000s |
-| TS-08 | PrismPM Model Framework Compilation & Production Release | `prismpm check && prismpm build` | ✅ PASS | 6.130s |
+| TS-08 | PrismPM Model Framework Compilation & Production Release | `prismpm check && prismpm build` | ✅ PASS | 7.349s |
 | TS-09 | Wireshark/Enterprise Invariant Matrix & Report Integrity | `In-process sub-suites SUITE-W1 through SUITE-R1` | ✅ PASS | 0.002s |
 
 ---
