@@ -1,0 +1,55 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{BlockKind}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{sectionHeader}: \texttt{()}.\par
+\noindent Constructor \texttt{interfaceDescription}: \texttt{()}.\par
+\noindent Constructor \texttt{enhancedPacket}: \texttt{()}.\par
+\noindent Constructor \texttt{nameResolution}: \texttt{()}.\par
+\noindent Constructor \texttt{interfaceStatistics}: \texttt{()}.\par
+\subsection*{\texttt{Block}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{index}: \texttt{Nat}.\par
+\noindent Field \texttt{kind}: \texttt{BlockKind}.\par
+\noindent Field \texttt{totalLength}: \texttt{Nat}.\par
+\noindent Field \texttt{bodyLength}: \texttt{Nat}.\par
+\subsection*{\texttt{wellFormedBlockLengths}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(block : Block)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{((Nat.ble (12) ((block).totalLength)) \&\& ((Nat.ble ((block).bodyLength) ((block).totalLength)) \&\& (Nat.ble ((block).bodyLength) (262144))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isAlignedTo32BitBoundary}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(block : Block)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(Nat.beq ((LexLeanRuntime.remainder ((block).totalLength) (4) (0) : Nat)) (0))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isValidBlock}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(block : Block)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(wellFormedBlockLengths (block) \&\& isAlignedTo32BitBoundary (block))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{alignedEnhancedPacketBlock}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{Block}.\par
+\noindent Definition: \texttt{(\{ index := 0, kind := BlockKind.enhancedPacket, totalLength := 96, bodyLength := 84 \} : Block)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{misalignedEnhancedPacketBlock}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{Block}.\par
+\noindent Definition: \texttt{(\{ index := 1, kind := BlockKind.enhancedPacket, totalLength := 97, bodyLength := 84 \} : Block)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{aligned\_packet\_block\_is\_valid}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(isValidBlock (alignedEnhancedPacketBlock) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{misaligned\_packet\_block\_is\_rejected}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(isValidBlock (misalignedEnhancedPacketBlock) = false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\end{document}

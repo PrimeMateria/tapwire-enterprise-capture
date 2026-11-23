@@ -1,0 +1,56 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{CaptureLimits}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{snaplen}: \texttt{Nat}.\par
+\noindent Field \texttt{linkType}: \texttt{Nat}.\par
+\noindent Field \texttt{timestampPrecision}: \texttt{Nat}.\par
+\noindent Field \texttt{maxPacketLength}: \texttt{Nat}.\par
+\subsection*{\texttt{defaultCaptureLimits}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{CaptureLimits}.\par
+\noindent Definition: \texttt{(\{ snaplen := 262144, linkType := 1, timestampPrecision := 6, maxPacketLength := 262144 \} : CaptureLimits)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{classicPcapMagicMicroseconds}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{2712847316}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{classicPcapMagicNanoseconds}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{2712847317}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{pcapngSectionMagic}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{168627466}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isSupportedLinkType}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(linkType : Nat)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{((Nat.ble (1) (linkType)) \&\& (Nat.ble (linkType) (300)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isCaptureLimitsValid}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(limits : CaptureLimits)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(((Nat.blt (0) ((limits).snaplen)) \&\& (Nat.ble ((limits).maxPacketLength) ((limits).snaplen))) \&\& (((Nat.blt (0) ((limits).timestampPrecision)) \&\& (Nat.ble ((limits).timestampPrecision) (9))) \&\& isSupportedLinkType ((limits).linkType)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{default\_capture\_limits\_are\_valid}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(isCaptureLimitsValid (defaultCaptureLimits) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{pcap\_magic\_values\_are\_distinct}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Nat.beq (classicPcapMagicMicroseconds) (classicPcapMagicNanoseconds)) = false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{pcapng\_section\_magic\_is\_expected}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Nat.beq (pcapngSectionMagic) (168627466)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\end{document}

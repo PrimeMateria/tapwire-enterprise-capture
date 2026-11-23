@@ -1,0 +1,130 @@
+\begin{lexlean}{Enterprise.CapturePipeline}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{wireshark.titles@1.0.0}
+\title{Enterprise network capture pipeline model}
+\begin{semanticmodule}
+inductive{
+  name: MirrorEncapsulation,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: physicalTap, fields: []},
+    {name: spanPort, fields: []},
+    {name: vxlanUdp, fields: []},
+    {name: geneveUdp, fields: []}
+  ]
+}
+
+inductive{
+  name: PipelineTier,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: trafficAcquisition, fields: []},
+    {name: passiveSensorProcessing, fields: []},
+    {name: decoupledTransportBuffering, fields: []},
+    {name: ingestionStorage, fields: []}
+  ]
+}
+
+structure{
+  name: CapturePipeline,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: encapsulation, type: MirrorEncapsulation},
+    {name: tunnelTerminated, type: Nat},
+    {name: reusePortEnabled, type: Nat},
+    {name: workerCount, type: Nat},
+    {name: bufferedTransport, type: Nat},
+    {name: topicCount, type: Nat}
+  ]
+}
+
+definition{
+  name: tierIndex,
+  parameters: [tier : PipelineTier],
+  result: Nat,
+  body: (match tier
+    | PipelineTier.trafficAcquisition => 0
+    | PipelineTier.passiveSensorProcessing => 1
+    | PipelineTier.decoupledTransportBuffering => 2
+    | PipelineTier.ingestionStorage => 3)
+}
+
+definition{
+  name: isEncapsulationHandled,
+  parameters: [encapsulation : MirrorEncapsulation, tunnelTerminated : Nat],
+  result: Bool,
+  body: (match encapsulation
+    | MirrorEncapsulation.physicalTap => true
+    | MirrorEncapsulation.spanPort => true
+    | MirrorEncapsulation.vxlanUdp => (tunnelTerminated =? 1)
+    | MirrorEncapsulation.geneveUdp => (tunnelTerminated =? 1))
+}
+
+definition{
+  name: hasSensorLoadBalancing,
+  parameters: [pipeline : CapturePipeline],
+  result: Bool,
+  body: (((project pipeline reusePortEnabled) =? 1) && (2 <=? (project pipeline workerCount)))
+}
+
+definition{
+  name: hasDecoupledTransport,
+  parameters: [pipeline : CapturePipeline],
+  result: Bool,
+  body: (((project pipeline bufferedTransport) =? 1) && (0 <? (project pipeline topicCount)))
+}
+
+definition{
+  name: isPipelineWellFormed,
+  parameters: [pipeline : CapturePipeline],
+  result: Bool,
+  body: ((isEncapsulationHandled (project pipeline encapsulation) (project pipeline tunnelTerminated)) && ((hasSensorLoadBalancing pipeline) && (hasDecoupledTransport pipeline)))
+}
+
+definition{
+  name: defaultEnterprisePipeline,
+  parameters: [],
+  result: CapturePipeline,
+  body: (record CapturePipeline {encapsulation := (ctor MirrorEncapsulation.geneveUdp), tunnelTerminated := 1, reusePortEnabled := 1, workerCount := 8, bufferedTransport := 1, topicCount := 3})
+}
+
+definition{
+  name: unterminatedVxlanPipeline,
+  parameters: [],
+  result: CapturePipeline,
+  body: (record CapturePipeline {encapsulation := (ctor MirrorEncapsulation.vxlanUdp), tunnelTerminated := 0, reusePortEnabled := 1, workerCount := 8, bufferedTransport := 1, topicCount := 3})
+}
+
+theorem{
+  name: default_pipeline_is_well_formed,
+  parameters: [],
+  statement: ((isPipelineWellFormed (defaultEnterprisePipeline)) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: unterminated_vxlan_pipeline_is_rejected,
+  parameters: [],
+  statement: ((isPipelineWellFormed (unterminatedVxlanPipeline)) = false),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: pipeline_tiers_are_strictly_ordered,
+  parameters: [],
+  statement: ((((tierIndex (ctor PipelineTier.trafficAcquisition)) <? (tierIndex (ctor PipelineTier.passiveSensorProcessing))) && (((tierIndex (ctor PipelineTier.passiveSensorProcessing)) <? (tierIndex (ctor PipelineTier.decoupledTransportBuffering))) && ((tierIndex (ctor PipelineTier.decoupledTransportBuffering)) <? (tierIndex (ctor PipelineTier.ingestionStorage))))) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: default_pipeline_buffers_sensor_output,
+  parameters: [],
+  statement: ((hasDecoupledTransport (defaultEnterprisePipeline)) = true),
+  proof: reflexivity{}
+}
+\end{semanticmodule}
+\end{lexlean}

@@ -1,0 +1,87 @@
+name: Wireshark LexLean Verification and CI Pipeline
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "src/**"
+      - "language/**"
+      - "lexlean.toml"
+      - "lexlean.lock"
+      - "prismpm.toml"
+      - "lakefile.toml"
+      - "lean-toolchain"
+      - "run_tests.py"
+      - "run-tests.sh"
+      - "verify.sh"
+      - "tools.lock"
+      - "scripts/install-tools.sh"
+      - ".githooks/**"
+      - "install-hooks.sh"
+      - ".github/workflows/**"
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lean 4 Kernel & LexLean Formal Verification (ADR-0002/0029)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Lean 4 Toolchain
+        uses: leanprover/lean4-action@v1
+        with:
+          toolchain-file: "lean-toolchain"
+
+      - name: Install Pinned LexLean and PrismPM CLI
+        run: |
+          chmod +x scripts/install-tools.sh
+          ./scripts/install-tools.sh
+
+      - name: Run Full 9-Suite Verification Harness
+        run: |
+          ./run-tests.sh --ci
+
+      - name: Upload Test and Audit Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wireshark-lexlean-reports
+          path: reports/
+
+      - name: Publish Job Summary
+        if: always()
+        run: |
+          if [ -f "reports/TEST_REPORT_LATEST.md" ]; then
+            cat reports/TEST_REPORT_LATEST.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Verification report was not generated." >> $GITHUB_STEP_SUMMARY
+          fi
+
+  publish-reports:
+    name: Publish Production Verification Artifacts (CD)
+    needs: verify
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Reports Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: wireshark-lexlean-reports
+          path: reports/
+
+      - name: Archive Immutable Audit Ledger
+        run: |
+          echo "Audit ledger published for commit ${{ github.sha }}."

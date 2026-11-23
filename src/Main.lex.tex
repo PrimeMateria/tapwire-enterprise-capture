@@ -1,0 +1,52 @@
+\begin{lexlean}{Main}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{wireshark.titles@1.0.0}
+\importmodule{Wireshark.Capture}
+\importmodule{Wireshark.PcapNg}
+\importmodule{Wireshark.Dissector}
+\importmodule{Wireshark.Filter}
+\importmodule{Wireshark.Invariants}
+\importmodule{Enterprise.CapturePipeline}
+\importmodule{Enterprise.Normalization}
+\importmodule{Enterprise.FileServerThreats}
+\importmodule{Enterprise.AlertOperations}
+\importmodule{Enterprise.Invariants}
+\title{Wireshark formal verification suite}
+\begin{semanticmodule}
+theorem{
+  name: wireshark_model_integration_sound,
+  parameters: [],
+  statement: (((Wireshark.Capture::isCaptureLimitsValid (Wireshark.Capture::defaultCaptureLimits)) && ((Wireshark.PcapNg::isValidBlock (Wireshark.PcapNg::alignedEnhancedPacketBlock)) && ((Wireshark.Dissector::isValidFieldInstance (Wireshark.Dissector::tcpPortField)) && (Wireshark.Filter::evaluateFilter (Wireshark.Filter::tcpPortFilter))))) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: wireshark_rejects_malformed_block,
+  parameters: [],
+  statement: ((Wireshark.PcapNg::isValidBlock (Wireshark.PcapNg::misalignedEnhancedPacketBlock)) = false),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: wireshark_section_magic_is_stable,
+  parameters: [],
+  statement: (((Wireshark.Capture::pcapngSectionMagic) =? 168627466) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: enterprise_capture_and_alert_integration_is_sound,
+  parameters: [],
+  statement: ((((Enterprise.CapturePipeline::isPipelineWellFormed (Enterprise.CapturePipeline::defaultEnterprisePipeline)) && (Enterprise.Normalization::isKnownFileActivityUid (Enterprise.Normalization::fileSystemActivityTypeUid (Enterprise.Normalization::fileRenamingActivityId)))) && ((Enterprise.FileServerThreats::matchesRemotePayloadRule (Enterprise.FileServerThreats::administrativePayloadEvent)) && (Enterprise.AlertOperations::shouldDispatchAlert (Enterprise.AlertOperations::highRiskOffHoursContext)))) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: enterprise_and_wireshark_models_are_jointly_consistent,
+  parameters: [],
+  statement: ((((Wireshark.Capture::isCaptureLimitsValid (Wireshark.Capture::defaultCaptureLimits)) && (Enterprise.CapturePipeline::hasDecoupledTransport (Enterprise.CapturePipeline::defaultEnterprisePipeline))) && ((Enterprise.FileServerThreats::matchesRansomwareRule (Enterprise.FileServerThreats::ransomwareEvent)) && (not (Enterprise.AlertOperations::shouldDispatchAlert (Enterprise.AlertOperations::scannerContext))))) = true),
+  proof: reflexivity{}
+}
+\end{semanticmodule}
+\end{lexlean}

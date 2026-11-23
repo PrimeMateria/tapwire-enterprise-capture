@@ -1,0 +1,13 @@
+# Pinned toolchain versions and SHA-256 digests for Wireshark LexLean CI/CD
+[tools.lean]
+version = "4.32.2"
+toolchain = "leanprover/lean4:v4.32.2"
+
+[tools.lexlean]
+version = "0.4.3"
+language = "1.2"
+sha256 = "f943d51f5684760c8a904156904823058a7f2d94281373fc5d59454659bf023c"
+
+[tools.prismpm]
+version = "0.5.0"
+sha256 = "8cf7e3493b07e0e0b8bd4d9e0719702384259539a3861b21609f15b9c4a5f49b"

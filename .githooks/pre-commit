@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${SCRIPT_DIR}"
+
+echo "========================================================================"
+echo "  [PRE-COMMIT GATE] Running Wireshark LexLean Verification Harness"
+echo "========================================================================"
+
+if ! ./run-tests.sh --hook; then
+  echo ""
+  echo "❌ [PRE-COMMIT GATE FAILED] Verification regression detected."
+  echo "   Inspect reports/TEST_REPORT_LATEST.md and reports/logs/ for details."
+  exit 1
+fi
+
+echo ""
+echo "✅ [PRE-COMMIT GATE PASSED] Auto-staging verified latest reports..."
+git add reports/TEST_REPORT_LATEST.md reports/test_report_latest.json
+echo "========================================================================"

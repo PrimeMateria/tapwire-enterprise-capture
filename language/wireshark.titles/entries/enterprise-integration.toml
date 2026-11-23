@@ -1,0 +1,16 @@
+spec = "lexlean/entry/1"
+id = "enterprise-integration"
+category = "label-word"
+surface_arity = 0
+frame = "atom"
+
+[denotation]
+kind = "defined"
+value = "(const lexlean.std.nat::nat)"
+
+[[form]]
+id = "enterprise-integration"
+channel = "text"
+surface = "Enterprise integration invariants"
+canonical_source = true
+features = ["sentence-case", "singular"]

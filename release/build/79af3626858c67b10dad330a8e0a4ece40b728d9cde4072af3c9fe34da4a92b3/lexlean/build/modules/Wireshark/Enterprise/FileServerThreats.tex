@@ -1,0 +1,165 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{AttackPhase}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{reconnaissance}: \texttt{()}.\par
+\noindent Constructor \texttt{lateralMovement}: \texttt{()}.\par
+\noindent Constructor \texttt{destructionEncryption}: \texttt{()}.\par
+\noindent Constructor \texttt{exfiltration}: \texttt{()}.\par
+\subsection*{\texttt{ShareKind}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{ipcShare}: \texttt{()}.\par
+\noindent Constructor \texttt{cShare}: \texttt{()}.\par
+\noindent Constructor \texttt{adminShare}: \texttt{()}.\par
+\noindent Constructor \texttt{sysvolShare}: \texttt{()}.\par
+\noindent Constructor \texttt{customShare}: \texttt{()}.\par
+\subsection*{\texttt{FileAction}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{fileCreate}: \texttt{()}.\par
+\noindent Constructor \texttt{fileWrite}: \texttt{()}.\par
+\noindent Constructor \texttt{fileOpen}: \texttt{()}.\par
+\noindent Constructor \texttt{fileRename}: \texttt{()}.\par
+\noindent Constructor \texttt{fileRead}: \texttt{()}.\par
+\subsection*{\texttt{ExtensionKind}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{executableExtension}: \texttt{()}.\par
+\noindent Constructor \texttt{ransomwareExtension}: \texttt{()}.\par
+\noindent Constructor \texttt{benignExtension}: \texttt{()}.\par
+\subsection*{\texttt{FileShareEvent}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{share}: \texttt{ShareKind}.\par
+\noindent Field \texttt{action}: \texttt{FileAction}.\par
+\noindent Field \texttt{extension}: \texttt{ExtensionKind}.\par
+\noindent Field \texttt{distinctTargets}: \texttt{Nat}.\par
+\noindent Field \texttt{eventCount}: \texttt{Nat}.\par
+\noindent Field \texttt{windowSeconds}: \texttt{Nat}.\par
+\subsection*{\texttt{isAdministrativeShare}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(share : ShareKind)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(match share with | ShareKind.cShare => true | ShareKind.adminShare => true | ShareKind.ipcShare => false | ShareKind.sysvolShare => false | ShareKind.customShare => false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isDefaultShare}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(share : ShareKind)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(match share with | ShareKind.ipcShare => true | ShareKind.cShare => true | ShareKind.adminShare => true | ShareKind.sysvolShare => false | ShareKind.customShare => false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isPayloadAction}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(action : FileAction)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(match action with | FileAction.fileCreate => true | FileAction.fileWrite => true | FileAction.fileOpen => true | FileAction.fileRename => false | FileAction.fileRead => false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isRenameAction}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(action : FileAction)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(match action with | FileAction.fileCreate => false | FileAction.fileWrite => false | FileAction.fileOpen => false | FileAction.fileRename => true | FileAction.fileRead => false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isReadAction}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(action : FileAction)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(match action with | FileAction.fileCreate => false | FileAction.fileWrite => false | FileAction.fileOpen => false | FileAction.fileRename => false | FileAction.fileRead => true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isExecutableExtension}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(extension : ExtensionKind)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(match extension with | ExtensionKind.executableExtension => true | ExtensionKind.ransomwareExtension => false | ExtensionKind.benignExtension => false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isRansomwareExtension}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(extension : ExtensionKind)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(match extension with | ExtensionKind.executableExtension => false | ExtensionKind.ransomwareExtension => true | ExtensionKind.benignExtension => false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{matchesRemotePayloadRule}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(event : FileShareEvent)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(isAdministrativeShare ((event).share) \&\& (isPayloadAction ((event).action) \&\& isExecutableExtension ((event).extension)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{matchesShareEnumerationRule}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(event : FileShareEvent)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(isDefaultShare ((event).share) \&\& ((Nat.ble (15) ((event).distinctTargets)) \&\& (Nat.ble ((event).windowSeconds) (10))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{matchesRansomwareRule}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(event : FileShareEvent)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(((isRenameAction ((event).action) || isRansomwareExtension ((event).extension)) \&\& (Nat.ble (50) ((event).eventCount))) \&\& (Nat.ble ((event).windowSeconds) (60)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{matchesExfiltrationRule}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(event : FileShareEvent)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{((isReadAction ((event).action) \&\& (Nat.ble (500) ((event).eventCount))) \&\& (Nat.ble ((event).windowSeconds) (300)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{phaseCode}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(phase : AttackPhase)}.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match phase with | AttackPhase.reconnaissance => 1135 | AttackPhase.lateralMovement => 1021 | AttackPhase.destructionEncryption => 1486 | AttackPhase.exfiltration => 1567)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{areThreatPhaseCodesDistinct}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{((!(Nat.beq (phaseCode (AttackPhase.reconnaissance)) (phaseCode (AttackPhase.lateralMovement)))) \&\& (!(Nat.beq (phaseCode (AttackPhase.destructionEncryption)) (phaseCode (AttackPhase.exfiltration)))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{administrativePayloadEvent}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{FileShareEvent}.\par
+\noindent Definition: \texttt{(\{ share := ShareKind.cShare, action := FileAction.fileCreate, extension := ExtensionKind.executableExtension, distinctTargets := 1, eventCount := 1, windowSeconds := 60 \} : FileShareEvent)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{shareFinderEvent}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{FileShareEvent}.\par
+\noindent Definition: \texttt{(\{ share := ShareKind.ipcShare, action := FileAction.fileOpen, extension := ExtensionKind.benignExtension, distinctTargets := 18, eventCount := 18, windowSeconds := 10 \} : FileShareEvent)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{ransomwareEvent}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{FileShareEvent}.\par
+\noindent Definition: \texttt{(\{ share := ShareKind.customShare, action := FileAction.fileRename, extension := ExtensionKind.ransomwareExtension, distinctTargets := 1, eventCount := 50, windowSeconds := 60 \} : FileShareEvent)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{exfiltrationEvent}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{FileShareEvent}.\par
+\noindent Definition: \texttt{(\{ share := ShareKind.customShare, action := FileAction.fileRead, extension := ExtensionKind.benignExtension, distinctTargets := 1, eventCount := 500, windowSeconds := 300 \} : FileShareEvent)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{benignReadEvent}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{FileShareEvent}.\par
+\noindent Definition: \texttt{(\{ share := ShareKind.customShare, action := FileAction.fileRead, extension := ExtensionKind.benignExtension, distinctTargets := 1, eventCount := 10, windowSeconds := 300 \} : FileShareEvent)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{administrative\_payload\_event\_is\_detected}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(matchesRemotePayloadRule (administrativePayloadEvent) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{share\_finder\_pattern\_is\_detected}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(matchesShareEnumerationRule (shareFinderEvent) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{ransomware\_pattern\_is\_detected}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(matchesRansomwareRule (ransomwareEvent) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{exfiltration\_pattern\_is\_detected}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(matchesExfiltrationRule (exfiltrationEvent) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{benign\_read\_is\_not\_exfiltration}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(matchesExfiltrationRule (benignReadEvent) = false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{threat\_phase\_codes\_are\_distinct}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(areThreatPhaseCodesDistinct = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\end{document}

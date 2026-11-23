@@ -1,0 +1,71 @@
+\begin{lexlean}{Wireshark.Capture}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{wireshark.titles@1.0.0}
+\title{Wireshark capture file parameters}
+\begin{semanticmodule}
+structure{
+  name: CaptureLimits,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: snaplen, type: Nat},
+    {name: linkType, type: Nat},
+    {name: timestampPrecision, type: Nat},
+    {name: maxPacketLength, type: Nat}
+  ]
+}
+
+definition{
+  name: defaultCaptureLimits,
+  parameters: [],
+  result: CaptureLimits,
+  body: (record CaptureLimits {snaplen := 262144, linkType := 1, timestampPrecision := 6, maxPacketLength := 262144})
+}
+
+definition{name: classicPcapMagicMicroseconds, parameters: [], result: Nat, body: 2712847316}
+
+definition{name: classicPcapMagicNanoseconds, parameters: [], result: Nat, body: 2712847317}
+
+definition{name: pcapngSectionMagic, parameters: [], result: Nat, body: 168627466}
+
+definition{
+  name: isSupportedLinkType,
+  parameters: [linkType : Nat],
+  result: Bool,
+  body: ((1 <=? linkType) && (linkType <=? 300)),
+  executable: true,
+  production: {effects: [], targets: [rust-core, rust-std]}
+}
+
+definition{
+  name: isCaptureLimitsValid,
+  parameters: [limits : CaptureLimits],
+  result: Bool,
+  body: (((0 <? (project limits snaplen)) && ((project limits maxPacketLength) <=? (project limits snaplen))) && (((0 <? (project limits timestampPrecision)) && ((project limits timestampPrecision) <=? 9)) && (isSupportedLinkType (project limits linkType)))),
+  executable: true,
+  production: {effects: [], targets: [rust-core, rust-std]}
+}
+
+theorem{
+  name: default_capture_limits_are_valid,
+  parameters: [],
+  statement: ((isCaptureLimitsValid (defaultCaptureLimits)) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: pcap_magic_values_are_distinct,
+  parameters: [],
+  statement: (((classicPcapMagicMicroseconds) =? (classicPcapMagicNanoseconds)) = false),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: pcapng_section_magic_is_expected,
+  parameters: [],
+  statement: (((pcapngSectionMagic) =? 168627466) = true),
+  proof: reflexivity{}
+}
+\end{semanticmodule}
+\end{lexlean}

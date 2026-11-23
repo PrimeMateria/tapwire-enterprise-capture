@@ -1,0 +1,229 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  columns=fullflexible
+}
+
+\title{ADR-0001: Integration of Enterprise Network Capture and Alert Planning into the LexLean Wireshark Rewrite}
+\author{Wireshark LexLean Rewrite Working Group}
+\date{2026-11-23}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This decision record governs the integration of
+\texttt{Network Capture and Alert Planning.txt} into the LexLean 1.2 Wireshark rewrite located at
+\texttt{/run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production}. The source document is a
+rich operational architecture narrative covering packet acquisition, passive sensors, Kafka
+buffering, schema normalization, file-server threat analytics, and SOAR response. This ADR decides
+to integrate its modelable claims as new closed-lexicon, kernel-verified LexLean modules rather than
+as copied prose, operational configuration, or a claim of equivalence with deployed infrastructure.
+\end{abstract}
+
+\section{Context}
+
+The existing project is a bounded formal rewrite in the style of \texttt{kuramoto-prism} and
+\texttt{o3de-prism}. Before this change it contained nine verified modules covering pcap/pcapng
+capture limits, block alignment, dissector fields, display filters, cross-module invariants, PRISM
+architecture/quality/security facets, and top-level integration.
+
+The planning document introduces five additional concern areas:
+
+\begin{enumerate}
+  \item a four-tier high-throughput capture pipeline: traffic acquisition, passive sensor
+        processing, decoupled transport buffering, and ingestion/storage;
+  \item schema normalization across native Zeek fields, ECS, OCSF, and Google UDM, including the
+        OCSF identity $\mathrm{type\_uid} = \mathrm{class\_uid}\times 100 + \mathrm{activity\_id}$;
+  \item a four-phase file-server threat lifecycle and four detection families: remote payload
+        creation on administrative shares, automated share enumeration, rapid ransomware
+        rename/overwrite, and anomalous mass read/exfiltration;
+  \item baseline filtering, contextual scoring, alert severity, and network/endpoint correlation;
+  \item SOAR response playbooks mapped to the resulting alert class.
+\end{enumerate}
+
+The implementation plan preceding this ADR is
+\texttt{docs/PLAN-network-capture-alert-integration.md}.
+
+\section{Decision Drivers}
+
+\begin{enumerate}
+  \item \textbf{Bounded formal fidelity.} Model the assertions and thresholds that can be stated
+        finitely and proved, without pretending to reproduce external systems.
+  \item \textbf{Closed-lexicon discipline.} Every new module must use the project's closed title
+        lexicon and follow LexLean 1.2 canonical formatting.
+  \item \textbf{Kernel verification.} Every theorem must be discharged by the Lean 4 kernel with no
+        sorries and no dynamic tactic axioms.
+  \item \textbf{Requirements traceability.} Each major planning area must map to named LexLean
+        declarations and to a verification command.
+  \item \textbf{Additive integration.} Existing Wireshark modules and the original
+        \texttt{../wireshark} source tree remain unchanged.
+  \item \textbf{Release reproducibility.} The complete expanded project must pass \texttt{prismpm
+        check} and publish a new \texttt{prismpm build}.
+\end{enumerate}
+
+\section{Decision}
+
+We add five new LexLean modules under \texttt{src/Enterprise/}, extend the top-level
+\texttt{Main} module, add five title entries to \texttt{language/wireshark.titles}, and extend the
+sorted \texttt{entrypoints} array in \texttt{lexlean.toml}. The source planning document remains an
+input artifact; it is not copied into the formal source and no external deployment is performed.
+
+\subsection{Module Set}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{l X}
+\toprule
+\textbf{Module} & \textbf{Modeled responsibility} \\
+\midrule
+\texttt{Enterprise.CapturePipeline}
+  & Mirroring encodings (physical TAP, SPAN, VXLAN/UDP, GENEVE/UDP), four-tier ordering, tunnel
+    termination, \texttt{SO\_REUSEPORT}-style worker balancing, and buffered transport. \\
+\texttt{Enterprise.Normalization}
+  & Schema identifiers, canonical source/destination/file field roles, OCSF class and activity
+    codes, and the OCSF \texttt{type\_uid} formula. \\
+\texttt{Enterprise.FileServerThreats}
+  & Attack phases, share kinds, file actions, extension classes, and the four rule predicates with
+    their documented thresholds. \\
+\texttt{Enterprise.AlertOperations}
+  & Baseline suppression, contextual weights, score thresholding, alert severity, endpoint
+    correlation, and response action codes. \\
+\texttt{Enterprise.Invariants}
+  & Cross-module consistency theorems linking pipeline, normalization, detection, and alerting. \\
+\bottomrule
+\end{tabularx}
+\caption{New formal modules added by this ADR.}
+\end{table}
+
+\subsection{Representative Formalized Constants}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Concept} & \textbf{Value} & \textbf{Source intent} \\
+\midrule
+OCSF File System Activity class UID & 1001 & Class 1001 \\
+OCSF Network Activity class UID & 4001 & Class 4001 \\
+File creation activity ID & 1 & $\texttt{type\_uid}=100101$ \\
+File renaming activity ID & 5 & $\texttt{type\_uid}=100105$ \\
+Share enumeration threshold & $\geq 15$ distinct targets & Rule 2, ten-second window \\
+Ransomware event threshold & $\geq 50$ events & Rule 3, one-minute window \\
+Exfiltration read threshold & $\geq 500$ events & Rule 4, five-minute window \\
+\bottomrule
+\end{tabular}
+\caption{Constants preserved from the planning document.}
+\end{table}
+
+\section{Requirements Traceability}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{p{3.6cm} X l}
+\toprule
+\textbf{Planning area} & \textbf{Formal claim} & \textbf{Declaration family} \\
+\midrule
+Four-tier pipeline & Tier indices are strictly ordered and buffering is present in the default
+  pipeline. & \texttt{tierIndex}, \texttt{isPipelineWellFormed},
+  \texttt{defaultEnterprisePipeline} \\
+Encapsulation & VXLAN/GENEVE streams require tunnel termination before sensor processing. &
+  \texttt{isEncapsulationHandled} \\
+Normalization & Canonical field roles are schema-specific; OCSF file-activity UIDs are computed
+  and distinct. & \texttt{sourceIpFieldCode}, \texttt{fileSystemActivityTypeUid},
+  \texttt{isKnownFileActivityUid} \\
+Rule 1 & Administrative share plus write/create/open action plus executable extension is detected. &
+  \texttt{matchesRemotePayloadRule} \\
+Rule 2 & Default share observation with at least 15 distinct targets in 10 seconds is detected. &
+  \texttt{matchesShareEnumerationRule} \\
+Rule 3 & Rename or ransomware extension with at least 50 events in 60 seconds is detected. &
+  \texttt{matchesRansomwareRule} \\
+Rule 4 & Read action with at least 500 events in 300 seconds is detected. &
+  \texttt{matchesExfiltrationRule} \\
+Baseline tuning & Scanner/backup suppression blocks dispatch; untrusted off-hours context
+  escalates to critical. & \texttt{shouldDispatchAlert}, \texttt{alertLevelForScore} \\
+Correlation and SOAR & Endpoint correlation is required for dispatch; critical alerts select host
+  isolation. & \texttt{hasEndpointCorrelation}, \texttt{responseForLevel} \\
+\bottomrule
+\end{tabularx}
+\caption{Traceability from planning requirements to LexLean declarations.}
+\end{table}
+
+\section{Verification Evidence}
+
+The full pipeline was executed from the project root:
+
+\begin{lstlisting}
+lexlean fmt --all --check
+lexlean lock --check
+lexlean check --all
+lexlean verify --all
+lake build --allow-empty
+prismpm check
+prismpm build
+\end{lstlisting}
+
+Recorded results after this integration:
+
+\begin{itemize}
+  \item Source modules: 14 (nine pre-existing plus five new enterprise modules).
+  \item Theorems: 52; definitions: 99; structures: 39; inductive types: 24.
+  \item LexLean semantic ID:
+        \texttt{82a79bd033b89dc60f05bd8f58518b2f5d77d6e10c7b839ae02296ab422611b2}.
+  \item Lean attestation:
+        \texttt{d633598a6e4acdde2a11a1ddc39e35eaeb3d8a2d6d61510c5508b266671b2460}.
+  \item PrismPM release:
+        \texttt{79af3626858c67b10dad330a8e0a4ece40b728d9cde4072af3c9fe34da4a92b3}.
+  \item The prior certified Rust production export
+        \texttt{a69be6edb75c35ed99b44712e5a8e986b45586515bb78ddaeda13c0b4d9b2a9b} remains valid
+        because its root and source module were not changed by this ADR.
+\end{itemize}
+
+\section{Consequences}
+
+\subsection{Positive}
+
+\begin{itemize}
+  \item The planning document's structural and analytical claims are now present as named,
+        checkable formal objects rather than prose only.
+  \item Threshold drift is visible in source: changing a documented count or window changes a
+        theorem's meaning and requires re-verification.
+  \item The existing Wireshark suite and the new enterprise suite are jointly checked by
+        \texttt{Main}, giving a single project-wide attestation.
+  \item PrismPM produces a fresh content-addressed release for the expanded project.
+\end{itemize}
+
+\subsection{Negative and Mitigations}
+
+\begin{itemize}
+  \item The model uses finite codes for IP fields, shares, actions, extensions, and schemas rather
+        than raw strings or packet bytes. \textbf{Mitigation:} this is intentional bounded
+        formalization; no parsing equivalence is claimed.
+  \item Operational systems such as Kafka, Zeek, Suricata, Elasticsearch, and SOAR are not deployed
+        or executed. \textbf{Mitigation:} downstream engineering must treat this ADR as a
+        specification of decision structure, not as a deployment artifact.
+  \item Statistical baselines are represented by discrete weights and classes. \textbf{Mitigation:}
+        the formal model proves threshold behavior for representative contexts; empirical tuning
+        remains outside scope.
+\end{itemize}
+
+\section{Status}
+
+Accepted and implemented on 2026-11-23. Any future change to the modeled thresholds, schema codes,
+or tier ordering requires a new ADR or an explicit amendment to this record, followed by a complete
+LexLean verification and PrismPM rebuild.
+
+\end{document}

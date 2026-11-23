@@ -1,0 +1,53 @@
+\begin{lexlean}{Enterprise.Invariants}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{wireshark.titles@1.0.0}
+\importmodule{Enterprise.CapturePipeline}
+\importmodule{Enterprise.Normalization}
+\importmodule{Enterprise.FileServerThreats}
+\importmodule{Enterprise.AlertOperations}
+\title{Enterprise integration invariants}
+\begin{semanticmodule}
+theorem{
+  name: pipeline_and_normalization_are_coherent,
+  parameters: [],
+  statement: (((Enterprise.CapturePipeline::isPipelineWellFormed (Enterprise.CapturePipeline::defaultEnterprisePipeline)) && ((Enterprise.Normalization::hasCanonicalNetworkEndpoints (Enterprise.Normalization::defaultEcsFileEvent)) && (Enterprise.Normalization::hasCanonicalFileFields (Enterprise.Normalization::defaultEcsFileEvent)))) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: normalization_and_detection_are_coherent,
+  parameters: [],
+  statement: (((Enterprise.Normalization::isKnownFileActivityUid (Enterprise.Normalization::fileSystemActivityTypeUid (Enterprise.Normalization::fileRenamingActivityId))) && (Enterprise.FileServerThreats::matchesRansomwareRule (Enterprise.FileServerThreats::ransomwareEvent))) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: detection_and_alert_are_coherent,
+  parameters: [],
+  statement: (((Enterprise.FileServerThreats::matchesRemotePayloadRule (Enterprise.FileServerThreats::administrativePayloadEvent)) && (Enterprise.AlertOperations::shouldDispatchAlert (Enterprise.AlertOperations::highRiskOffHoursContext))) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: baseline_suppression_is_preserved,
+  parameters: [],
+  statement: (((not (Enterprise.AlertOperations::shouldDispatchAlert (Enterprise.AlertOperations::scannerContext))) && (not (Enterprise.AlertOperations::shouldDispatchAlert (Enterprise.AlertOperations::businessHoursContext)))) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: critical_alert_selects_host_isolation,
+  parameters: [],
+  statement: ((Enterprise.AlertOperations::responseCode (Enterprise.AlertOperations::responseForLevel (Enterprise.AlertOperations::alertLevel (Enterprise.AlertOperations::highRiskOffHoursContext)))) = 3),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: enterprise_integration_is_sound,
+  parameters: [],
+  statement: ((((Enterprise.CapturePipeline::isPipelineWellFormed (Enterprise.CapturePipeline::defaultEnterprisePipeline)) && ((Enterprise.Normalization::hasCanonicalNetworkEndpoints (Enterprise.Normalization::defaultOcsfRenameEvent)) && (Enterprise.Normalization::isKnownFileActivityUid (project (Enterprise.Normalization::defaultOcsfRenameEvent) typeUid)))) && (((Enterprise.FileServerThreats::matchesRemotePayloadRule (Enterprise.FileServerThreats::administrativePayloadEvent)) && (Enterprise.FileServerThreats::matchesShareEnumerationRule (Enterprise.FileServerThreats::shareFinderEvent))) && ((Enterprise.FileServerThreats::matchesRansomwareRule (Enterprise.FileServerThreats::ransomwareEvent)) && (Enterprise.FileServerThreats::matchesExfiltrationRule (Enterprise.FileServerThreats::exfiltrationEvent))))) = true),
+  proof: reflexivity{}
+}
+\end{semanticmodule}
+\end{lexlean}

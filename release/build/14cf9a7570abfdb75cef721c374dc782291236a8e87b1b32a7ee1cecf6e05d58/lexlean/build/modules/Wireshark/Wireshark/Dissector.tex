@@ -1,0 +1,71 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{ProtocolLayer}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{ethernet}: \texttt{()}.\par
+\noindent Constructor \texttt{ipv4}: \texttt{()}.\par
+\noindent Constructor \texttt{tcp}: \texttt{()}.\par
+\noindent Constructor \texttt{udp}: \texttt{()}.\par
+\noindent Constructor \texttt{tls}: \texttt{()}.\par
+\noindent Constructor \texttt{http}: \texttt{()}.\par
+\subsection*{\texttt{FieldInstance}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{index}: \texttt{Nat}.\par
+\noindent Field \texttt{parentIndex}: \texttt{Nat}.\par
+\noindent Field \texttt{fieldId}: \texttt{Nat}.\par
+\noindent Field \texttt{depth}: \texttt{Nat}.\par
+\noindent Field \texttt{layer}: \texttt{ProtocolLayer}.\par
+\subsection*{\texttt{protocolLayerRank}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(layer : ProtocolLayer)}.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match layer with | ProtocolLayer.ethernet => 1 | ProtocolLayer.ipv4 => 2 | ProtocolLayer.tcp => 3 | ProtocolLayer.udp => 3 | ProtocolLayer.tls => 4 | ProtocolLayer.http => 5)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{hasValidParentOrder}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(field : FieldInstance)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(Nat.blt ((field).parentIndex) ((field).index))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isWithinDepthBudget}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(field : FieldInstance)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(Nat.ble ((field).depth) (32))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isValidFieldInstance}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(field : FieldInstance)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(((Nat.blt (0) ((field).fieldId)) \&\& hasValidParentOrder (field)) \&\& isWithinDepthBudget (field))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{ipSourceField}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{FieldInstance}.\par
+\noindent Definition: \texttt{(\{ index := 1, parentIndex := 0, fieldId := 11, depth := 1, layer := ProtocolLayer.ipv4 \} : FieldInstance)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{tcpPortField}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{FieldInstance}.\par
+\noindent Definition: \texttt{(\{ index := 2, parentIndex := 1, fieldId := 23, depth := 2, layer := ProtocolLayer.tcp \} : FieldInstance)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{ip\_source\_field\_is\_valid}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(isValidFieldInstance (ipSourceField) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{tcp\_port\_field\_is\_valid}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(isValidFieldInstance (tcpPortField) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{sampled\_field\_ids\_are\_distinct}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Nat.beq ((ipSourceField).fieldId) ((tcpPortField).fieldId)) = false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{sampled\_protocol\_layers\_are\_ordered}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Nat.blt (protocolLayerRank ((ipSourceField).layer)) (protocolLayerRank ((tcpPortField).layer))) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\end{document}

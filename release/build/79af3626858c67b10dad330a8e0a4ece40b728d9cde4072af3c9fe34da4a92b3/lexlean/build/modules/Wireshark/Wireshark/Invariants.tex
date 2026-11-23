@@ -1,0 +1,22 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{capture\_limits\_bound\_packet\_length}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Nat.ble ((Wireshark.Wireshark.Capture.defaultCaptureLimits).maxPacketLength) ((Wireshark.Wireshark.Capture.defaultCaptureLimits).snaplen)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{pcapng\_block\_alignment\_is\_enforced}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Wireshark.Wireshark.PcapNg.isAlignedTo32BitBoundary (Wireshark.Wireshark.PcapNg.alignedEnhancedPacketBlock) \&\& (!Wireshark.Wireshark.PcapNg.isAlignedTo32BitBoundary (Wireshark.Wireshark.PcapNg.misalignedEnhancedPacketBlock))) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{dissector\_fields\_respect\_parent\_and\_depth}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Wireshark.Wireshark.Dissector.isValidFieldInstance (Wireshark.Wireshark.Dissector.ipSourceField) \&\& Wireshark.Wireshark.Dissector.isValidFieldInstance (Wireshark.Wireshark.Dissector.tcpPortField)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{display\_filter\_is\_bounded}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Nat.ble (Wireshark.Wireshark.Filter.filterNodeCount (Wireshark.Wireshark.Filter.tcpPortFilter)) (64)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\end{document}

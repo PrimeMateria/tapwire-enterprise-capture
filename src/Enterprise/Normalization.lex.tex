@@ -1,0 +1,196 @@
+\begin{lexlean}{Enterprise.Normalization}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{wireshark.titles@1.0.0}
+\title{Enterprise telemetry schema normalization model}
+\begin{semanticmodule}
+inductive{
+  name: TelemetrySchema,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: nativeZeek, fields: []},
+    {name: ecs, fields: []},
+    {name: ocsf, fields: []},
+    {name: udm, fields: []}
+  ]
+}
+
+inductive{
+  name: ZeekLogSource,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: connLog, fields: []},
+    {name: smbMappingLog, fields: []},
+    {name: smbFilesLog, fields: []},
+    {name: suricataAlert, fields: []}
+  ]
+}
+
+structure{
+  name: NormalizedEvent,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: sourceLog, type: ZeekLogSource},
+    {name: schema, type: TelemetrySchema},
+    {name: sourceIpField, type: Nat},
+    {name: destinationIpField, type: Nat},
+    {name: fileNameField, type: Nat},
+    {name: filePathField, type: Nat},
+    {name: typeUid, type: Nat}
+  ]
+}
+
+definition{name: fileSystemClassUid, parameters: [], result: Nat, body: 1001}
+
+definition{name: networkActivityClassUid, parameters: [], result: Nat, body: 4001}
+
+definition{name: fileCreationActivityId, parameters: [], result: Nat, body: 1}
+
+definition{name: fileRenamingActivityId, parameters: [], result: Nat, body: 5}
+
+definition{
+  name: fileSystemActivityTypeUid,
+  parameters: [activityId : Nat],
+  result: Nat,
+  body: ((prim multiply (fileSystemClassUid) 100 : Nat) + activityId)
+}
+
+definition{
+  name: sourceIpFieldCode,
+  parameters: [schema : TelemetrySchema],
+  result: Nat,
+  body: (match schema
+    | TelemetrySchema.nativeZeek => 31
+    | TelemetrySchema.ecs => 1
+    | TelemetrySchema.ocsf => 11
+    | TelemetrySchema.udm => 21)
+}
+
+definition{
+  name: destinationIpFieldCode,
+  parameters: [schema : TelemetrySchema],
+  result: Nat,
+  body: (match schema
+    | TelemetrySchema.nativeZeek => 32
+    | TelemetrySchema.ecs => 2
+    | TelemetrySchema.ocsf => 12
+    | TelemetrySchema.udm => 22)
+}
+
+definition{
+  name: fileNameFieldCode,
+  parameters: [schema : TelemetrySchema],
+  result: Nat,
+  body: (match schema
+    | TelemetrySchema.nativeZeek => 33
+    | TelemetrySchema.ecs => 3
+    | TelemetrySchema.ocsf => 13
+    | TelemetrySchema.udm => 23)
+}
+
+definition{
+  name: filePathFieldCode,
+  parameters: [schema : TelemetrySchema],
+  result: Nat,
+  body: (match schema
+    | TelemetrySchema.nativeZeek => 34
+    | TelemetrySchema.ecs => 4
+    | TelemetrySchema.ocsf => 14
+    | TelemetrySchema.udm => 24)
+}
+
+definition{
+  name: hasCanonicalNetworkEndpoints,
+  parameters: [event : NormalizedEvent],
+  result: Bool,
+  body: (((project event sourceIpField) =? (sourceIpFieldCode (project event schema))) && ((project event destinationIpField) =? (destinationIpFieldCode (project event schema))))
+}
+
+definition{
+  name: hasCanonicalFileFields,
+  parameters: [event : NormalizedEvent],
+  result: Bool,
+  body: (((project event fileNameField) =? (fileNameFieldCode (project event schema))) && ((project event filePathField) =? (filePathFieldCode (project event schema))))
+}
+
+definition{
+  name: isFileCreationUid,
+  parameters: [typeUid : Nat],
+  result: Bool,
+  body: (typeUid =? (fileSystemActivityTypeUid (fileCreationActivityId)))
+}
+
+definition{
+  name: isFileRenamingUid,
+  parameters: [typeUid : Nat],
+  result: Bool,
+  body: (typeUid =? (fileSystemActivityTypeUid (fileRenamingActivityId)))
+}
+
+definition{
+  name: isKnownFileActivityUid,
+  parameters: [typeUid : Nat],
+  result: Bool,
+  body: ((isFileCreationUid typeUid) || (isFileRenamingUid typeUid))
+}
+
+definition{
+  name: areFileActivityUidsDistinctAndKnown,
+  parameters: [],
+  result: Bool,
+  body: ((not ((fileSystemActivityTypeUid (fileCreationActivityId)) =? (fileSystemActivityTypeUid (fileRenamingActivityId)))) && (isKnownFileActivityUid (fileSystemActivityTypeUid (fileRenamingActivityId))))
+}
+
+definition{
+  name: defaultEcsFileEvent,
+  parameters: [],
+  result: NormalizedEvent,
+  body: (record NormalizedEvent {sourceLog := (ctor ZeekLogSource.smbFilesLog), schema := (ctor TelemetrySchema.ecs), sourceIpField := 1, destinationIpField := 2, fileNameField := 3, filePathField := 4, typeUid := 0})
+}
+
+definition{
+  name: defaultOcsfRenameEvent,
+  parameters: [],
+  result: NormalizedEvent,
+  body: (record NormalizedEvent {sourceLog := (ctor ZeekLogSource.smbFilesLog), schema := (ctor TelemetrySchema.ocsf), sourceIpField := 11, destinationIpField := 12, fileNameField := 13, filePathField := 14, typeUid := 100105})
+}
+
+theorem{
+  name: file_creation_uid_matches_specification,
+  parameters: [],
+  statement: (((fileSystemActivityTypeUid (fileCreationActivityId)) =? 100101) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: file_renaming_uid_matches_specification,
+  parameters: [],
+  statement: (((fileSystemActivityTypeUid (fileRenamingActivityId)) =? 100105) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: file_activity_uids_are_distinct,
+  parameters: [],
+  statement: ((areFileActivityUidsDistinctAndKnown) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: ecs_event_has_canonical_fields,
+  parameters: [],
+  statement: (((hasCanonicalNetworkEndpoints (defaultEcsFileEvent)) && (hasCanonicalFileFields (defaultEcsFileEvent))) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: ocsf_rename_event_is_known_file_activity,
+  parameters: [],
+  statement: ((((hasCanonicalNetworkEndpoints (defaultOcsfRenameEvent)) && (hasCanonicalFileFields (defaultOcsfRenameEvent))) && (isKnownFileActivityUid (project (defaultOcsfRenameEvent) typeUid))) = true),
+  proof: reflexivity{}
+}
+\end{semanticmodule}
+\end{lexlean}

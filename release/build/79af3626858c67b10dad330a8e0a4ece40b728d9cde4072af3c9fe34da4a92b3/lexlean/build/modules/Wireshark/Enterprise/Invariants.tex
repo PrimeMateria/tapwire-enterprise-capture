@@ -1,0 +1,30 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{pipeline\_and\_normalization\_are\_coherent}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Wireshark.Enterprise.CapturePipeline.isPipelineWellFormed (Wireshark.Enterprise.CapturePipeline.defaultEnterprisePipeline) \&\& (Wireshark.Enterprise.Normalization.hasCanonicalNetworkEndpoints (Wireshark.Enterprise.Normalization.defaultEcsFileEvent) \&\& Wireshark.Enterprise.Normalization.hasCanonicalFileFields (Wireshark.Enterprise.Normalization.defaultEcsFileEvent))) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{normalization\_and\_detection\_are\_coherent}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Wireshark.Enterprise.Normalization.isKnownFileActivityUid (Wireshark.Enterprise.Normalization.fileSystemActivityTypeUid (Wireshark.Enterprise.Normalization.fileRenamingActivityId)) \&\& Wireshark.Enterprise.FileServerThreats.matchesRansomwareRule (Wireshark.Enterprise.FileServerThreats.ransomwareEvent)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{detection\_and\_alert\_are\_coherent}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Wireshark.Enterprise.FileServerThreats.matchesRemotePayloadRule (Wireshark.Enterprise.FileServerThreats.administrativePayloadEvent) \&\& Wireshark.Enterprise.AlertOperations.shouldDispatchAlert (Wireshark.Enterprise.AlertOperations.highRiskOffHoursContext)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{baseline\_suppression\_is\_preserved}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(((!Wireshark.Enterprise.AlertOperations.shouldDispatchAlert (Wireshark.Enterprise.AlertOperations.scannerContext)) \&\& (!Wireshark.Enterprise.AlertOperations.shouldDispatchAlert (Wireshark.Enterprise.AlertOperations.businessHoursContext))) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{critical\_alert\_selects\_host\_isolation}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(Wireshark.Enterprise.AlertOperations.responseCode (Wireshark.Enterprise.AlertOperations.responseForLevel (Wireshark.Enterprise.AlertOperations.alertLevel (Wireshark.Enterprise.AlertOperations.highRiskOffHoursContext))) = 3)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{enterprise\_integration\_is\_sound}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(((Wireshark.Enterprise.CapturePipeline.isPipelineWellFormed (Wireshark.Enterprise.CapturePipeline.defaultEnterprisePipeline) \&\& (Wireshark.Enterprise.Normalization.hasCanonicalNetworkEndpoints (Wireshark.Enterprise.Normalization.defaultOcsfRenameEvent) \&\& Wireshark.Enterprise.Normalization.isKnownFileActivityUid ((Wireshark.Enterprise.Normalization.defaultOcsfRenameEvent).typeUid))) \&\& ((Wireshark.Enterprise.FileServerThreats.matchesRemotePayloadRule (Wireshark.Enterprise.FileServerThreats.administrativePayloadEvent) \&\& Wireshark.Enterprise.FileServerThreats.matchesShareEnumerationRule (Wireshark.Enterprise.FileServerThreats.shareFinderEvent)) \&\& (Wireshark.Enterprise.FileServerThreats.matchesRansomwareRule (Wireshark.Enterprise.FileServerThreats.ransomwareEvent) \&\& Wireshark.Enterprise.FileServerThreats.matchesExfiltrationRule (Wireshark.Enterprise.FileServerThreats.exfiltrationEvent)))) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\end{document}

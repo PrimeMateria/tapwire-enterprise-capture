@@ -1,0 +1,6 @@
+/.lexlean/
+/.lake/
+reports/*_20*.md
+reports/*_20*.json
+reports/logs/
+__pycache__/

@@ -1,0 +1,133 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{AlertLevel}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{informational}: \texttt{()}.\par
+\noindent Constructor \texttt{medium}: \texttt{()}.\par
+\noindent Constructor \texttt{high}: \texttt{()}.\par
+\noindent Constructor \texttt{critical}: \texttt{()}.\par
+\subsection*{\texttt{ResponseAction}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{flagForHunting}: \texttt{()}.\par
+\noindent Constructor \texttt{revokeSession}: \texttt{()}.\par
+\noindent Constructor \texttt{isolateHost}: \texttt{()}.\par
+\noindent Constructor \texttt{killEncryptingProcess}: \texttt{()}.\par
+\noindent Constructor \texttt{blockEgress}: \texttt{()}.\par
+\subsection*{\texttt{BaselineClass}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{vulnerabilityScanner}: \texttt{()}.\par
+\noindent Constructor \texttt{backupAgent}: \texttt{()}.\par
+\noindent Constructor \texttt{managementSubnet}: \texttt{()}.\par
+\noindent Constructor \texttt{untrustedWifi}: \texttt{()}.\par
+\subsection*{\texttt{AlertContext}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{baseline}: \texttt{BaselineClass}.\par
+\noindent Field \texttt{suppressed}: \texttt{Nat}.\par
+\noindent Field \texttt{offHours}: \texttt{Nat}.\par
+\noindent Field \texttt{untrustedSegment}: \texttt{Nat}.\par
+\noindent Field \texttt{baseScore}: \texttt{Nat}.\par
+\noindent Field \texttt{threshold}: \texttt{Nat}.\par
+\noindent Field \texttt{networkCorrelated}: \texttt{Nat}.\par
+\noindent Field \texttt{endpointCorrelated}: \texttt{Nat}.\par
+\subsection*{\texttt{isSuppressed}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(context : AlertContext)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(Nat.beq ((context).suppressed) (1))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{baselineWeight}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(baseline : BaselineClass)}.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match baseline with | BaselineClass.vulnerabilityScanner => 0 | BaselineClass.backupAgent => 0 | BaselineClass.managementSubnet => 10 | BaselineClass.untrustedWifi => 30)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{contextualScore}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(context : AlertContext)}.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(((context).baseScore + (if (Nat.beq ((context).offHours) (1)) then 30 else 0)) + ((if (Nat.beq ((context).untrustedSegment) (1)) then 20 else 0) + baselineWeight ((context).baseline)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{hasEndpointCorrelation}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(context : AlertContext)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(Nat.beq ((context).endpointCorrelated) (1))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{shouldDispatchAlert}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(context : AlertContext)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{((((!isSuppressed (context)) \&\& (Nat.ble ((context).threshold) (contextualScore (context)))) \&\& (Nat.beq ((context).networkCorrelated) (1))) \&\& hasEndpointCorrelation (context))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{alertLevelForScore}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(score : Nat)}.\par
+\noindent Type: \texttt{AlertLevel}.\par
+\noindent Definition: \texttt{(if (Nat.ble (80) (score)) then AlertLevel.critical else (if (Nat.ble (60) (score)) then AlertLevel.high else (if (Nat.ble (30) (score)) then AlertLevel.medium else AlertLevel.informational)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{alertLevel}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(context : AlertContext)}.\par
+\noindent Type: \texttt{AlertLevel}.\par
+\noindent Definition: \texttt{alertLevelForScore (contextualScore (context))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{responseForLevel}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(level : AlertLevel)}.\par
+\noindent Type: \texttt{ResponseAction}.\par
+\noindent Definition: \texttt{(match level with | AlertLevel.informational => ResponseAction.flagForHunting | AlertLevel.medium => ResponseAction.flagForHunting | AlertLevel.high => ResponseAction.revokeSession | AlertLevel.critical => ResponseAction.isolateHost)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{responseCode}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(action : ResponseAction)}.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match action with | ResponseAction.flagForHunting => 1 | ResponseAction.revokeSession => 2 | ResponseAction.isolateHost => 3 | ResponseAction.killEncryptingProcess => 4 | ResponseAction.blockEgress => 5)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{areResponseCodesDistinct}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{((!(Nat.beq (responseCode (ResponseAction.isolateHost)) (responseCode (ResponseAction.killEncryptingProcess)))) \&\& (!(Nat.beq (responseCode (ResponseAction.blockEgress)) (responseCode (ResponseAction.flagForHunting)))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{highRiskOffHoursContext}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{AlertContext}.\par
+\noindent Definition: \texttt{(\{ baseline := BaselineClass.untrustedWifi, suppressed := 0, offHours := 1, untrustedSegment := 1, baseScore := 30, threshold := 60, networkCorrelated := 1, endpointCorrelated := 1 \} : AlertContext)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{scannerContext}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{AlertContext}.\par
+\noindent Definition: \texttt{(\{ baseline := BaselineClass.vulnerabilityScanner, suppressed := 1, offHours := 0, untrustedSegment := 0, baseScore := 90, threshold := 60, networkCorrelated := 1, endpointCorrelated := 1 \} : AlertContext)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{businessHoursContext}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{AlertContext}.\par
+\noindent Definition: \texttt{(\{ baseline := BaselineClass.managementSubnet, suppressed := 0, offHours := 0, untrustedSegment := 0, baseScore := 40, threshold := 60, networkCorrelated := 1, endpointCorrelated := 1 \} : AlertContext)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{high\_risk\_context\_dispatches\_alert}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(shouldDispatchAlert (highRiskOffHoursContext) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{high\_risk\_context\_is\_critical}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(alertLevel (highRiskOffHoursContext) = AlertLevel.critical)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{scanner\_baseline\_suppresses\_alert}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(shouldDispatchAlert (scannerContext) = false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{business\_hours\_context\_stays\_below\_threshold}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(shouldDispatchAlert (businessHoursContext) = false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{high\_risk\_response\_is\_host\_isolation}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(responseCode (responseForLevel (alertLevel (highRiskOffHoursContext))) = 3)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{response\_codes\_are\_distinct}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(areResponseCodesDistinct = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\end{document}

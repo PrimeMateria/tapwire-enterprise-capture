@@ -1,0 +1,39 @@
+\begin{lexlean}{Wireshark.Invariants}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{wireshark.titles@1.0.0}
+\importmodule{Wireshark.Capture}
+\importmodule{Wireshark.PcapNg}
+\importmodule{Wireshark.Dissector}
+\importmodule{Wireshark.Filter}
+\title{Wireshark formal invariants}
+\begin{semanticmodule}
+theorem{
+  name: capture_limits_bound_packet_length,
+  parameters: [],
+  statement: (((project (Wireshark.Capture::defaultCaptureLimits) maxPacketLength) <=? (project (Wireshark.Capture::defaultCaptureLimits) snaplen)) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: pcapng_block_alignment_is_enforced,
+  parameters: [],
+  statement: (((Wireshark.PcapNg::isAlignedTo32BitBoundary (Wireshark.PcapNg::alignedEnhancedPacketBlock)) && (not (Wireshark.PcapNg::isAlignedTo32BitBoundary (Wireshark.PcapNg::misalignedEnhancedPacketBlock)))) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: dissector_fields_respect_parent_and_depth,
+  parameters: [],
+  statement: (((Wireshark.Dissector::isValidFieldInstance (Wireshark.Dissector::ipSourceField)) && (Wireshark.Dissector::isValidFieldInstance (Wireshark.Dissector::tcpPortField))) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: display_filter_is_bounded,
+  parameters: [],
+  statement: (((Wireshark.Filter::filterNodeCount (Wireshark.Filter::tcpPortFilter)) <=? 64) = true),
+  proof: reflexivity{}
+}
+\end{semanticmodule}
+\end{lexlean}

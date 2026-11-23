@@ -1,0 +1,350 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  columns=fullflexible
+}
+
+\title{ADR-0002: Production-Grade Test Harness, Automated Reporting, and CI/CD Integration for the LexLean Wireshark Rewrite}
+\author{Wireshark LexLean Rewrite Working Group}
+\date{2026-11-23}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This decision record proposes a production-grade verification harness for the LexLean Wireshark
+rewrite at \texttt{/run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production}. The harness
+follows the operating pattern established in \texttt{kuramoto-prism}: one automated runner, nine
+fail-closed suites, generated Markdown and JSON reports, a local pre-commit gate, and a GitHub
+Actions workflow that publishes the human-readable report to the job summary. The suite content is
+adapted to the current project's Wireshark/pcapng/dissector/filter model and the enterprise capture
+and alert model governed by ADR-0001. No Kuramoto numerical invariants or stress claims are copied,
+and no formal source is changed by this decision.
+\end{abstract}
+
+\section{Context}
+
+ADR-0001 expanded the project to fourteen verified LexLean modules: five Wireshark modules, five
+enterprise capture/alert modules, three PRISM facet modules, and the top-level \texttt{Main} module.
+The project currently has a single manual verification script, \texttt{verify.sh}, which runs:
+
+\begin{lstlisting}
+lexlean fmt --all --check
+lexlean lock --check
+lexlean check --all
+lexlean verify --all
+lake build --allow-empty
+prismpm check
+prismpm build
+\end{lstlisting}
+
+That script is sufficient for an ad hoc local check, but it does not produce an audit artifact,
+distinguish failing suites, enforce commit-time gates, or publish results to CI. The reference
+subsystem \texttt{kuramoto-prism} solves these problems with \texttt{run\_tests.py},
+\texttt{run-tests.sh}, \texttt{reports/TEST\_REPORT\_LATEST.md},
+\texttt{reports/test\_report\_latest.json}, \texttt{.githooks/pre-commit},
+\texttt{install-hooks.sh}, and \texttt{.github/workflows/verify-test.yml}.
+
+Two defects in the reference pattern must not be repeated. First, its report hard-codes Kuramoto
+counts and domain-specific invariants; this project must derive counts from its own configuration,
+tool output, and source. Second, its CI tool-installation step is a placeholder; this project must
+install pinned, digest-checked tools or fail closed.
+
+The implementation plan governing this proposal is
+\texttt{docs/PLAN-production-test-harness-ci-cd.md}. The project does not currently contain a
+\texttt{.git} directory, so any hook implementation must explicitly initialize a repository on
+\texttt{main}.
+
+\section{Decision Drivers}
+
+\begin{enumerate}
+  \item \textbf{Single source of truth.} One runner defines suite commands, pass conditions, and
+        report content for local, hook, and CI execution.
+  \item \textbf{Fail-closed verification.} Any formatter, lockfile, type-check, kernel-verification,
+        artifact, or release failure blocks the commit and the CI job.
+  \item \textbf{Human-readable audit trail.} Every run produces a Markdown report suitable for
+        reviewers and a JSON report suitable for automation.
+  \item \textbf{Documentation freshness.} A committed report must correspond to the current formal
+        findings; timestamp changes alone must not be treated as semantic drift.
+  \item \textbf{Project-specific claims.} Counts, hashes, module names, thresholds, and invariants
+        come from this project, not from \texttt{kuramoto-prism}.
+  \item \textbf{Reproducible environments.} Tool versions and digests are pinned; the CI workflow
+        contains no placeholder installation step.
+  \item \textbf{Additive change.} No \texttt{.lex.tex} module, lexicon, formal threshold, or
+        ADR-0001 artifact is modified.
+\end{enumerate}
+
+\section{Decision}
+
+We establish a nine-suite automated harness, a generated report contract, a local pre-commit gate,
+and a GitHub Actions verification and report-publishing pipeline. The runner wraps the existing
+verification surface; \texttt{verify.sh} is later reduced to a thin delegate so that command lists
+cannot diverge.
+
+\subsection{Suite Catalog}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{p{1.25cm} p{3.7cm} X}
+\toprule
+\textbf{Suite} & \textbf{Name} & \textbf{Command / pass condition} \\
+\midrule
+\texttt{TS-01}
+  & Toolchain Pin \& Runtime Environment
+  & \texttt{lean}, \texttt{lake}, \texttt{lexlean}, \texttt{prismpm}; versions must match
+    \texttt{lean-toolchain} and the pinned tool manifest. \\
+\texttt{TS-02}
+  & Canonical Format \& Lock Parity
+  & \texttt{lexlean fmt --all --check} and \texttt{lexlean lock --check} must both pass. \\
+\texttt{TS-03}
+  & Lean Lake Host Build \& Hygiene
+  & \texttt{lake build --allow-empty} must exit zero. \\
+\texttt{TS-04}
+  & Semantic IR AST \& Module Type Check
+  & \texttt{lexlean check --all}; parse \texttt{checked 14 modules}, source hash, semantic hash. \\
+\texttt{TS-05}
+  & Lean 4 Kernel Verification \& Attestation
+  & \texttt{lexlean verify --all}; parse \texttt{verified 14 modules} and the 64-hex attestation;
+    no sorries or dynamic axioms. \\
+\texttt{TS-06}
+  & Formal Declaration \& Threshold Audit
+  & Source scan over all fourteen modules; declaration families, counts, and ADR-0001 thresholds
+    must match the frozen baseline. \\
+\texttt{TS-07}
+  & Build \& Attestation Artifact Audit
+  & Required files under \texttt{.lexlean/}; semantic ID must agree with \texttt{prismpm check}. \\
+\texttt{TS-08}
+  & PrismPM Model Compilation \& Production Release
+  & \texttt{prismpm check}; \texttt{prismpm build}; verify
+    \texttt{release/build/HASH/manifest.json} and
+    \texttt{model.prism.json}. \\
+\texttt{TS-09}
+  & Wireshark/Enterprise Invariant Matrix \& Report Integrity
+  & Seven local sub-suites described below; all must pass and reports must agree. \\
+\bottomrule
+\end{tabularx}
+\caption{Nine fail-closed verification suites.}
+\end{table}
+
+The reference project's \texttt{TS-08} release path is \texttt{production/build/HASH}
+because its \texttt{prismpm.toml} uses that build root. This project declares
+\texttt{build\_root = "release"}, so the harness must verify
+\texttt{release/build/HASH} instead. Copying the reference path literally
+would produce a false failure. In these paths, \texttt{HASH} denotes the published 64-hex
+PrismPM release identifier.
+
+\subsection{Adapted \texttt{TS-09} Sub-Suites}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{p{2.0cm} p{4.2cm} X}
+\toprule
+\textbf{Sub-suite} & \textbf{Target} & \textbf{Evidence} \\
+\midrule
+\texttt{SUITE-W1}
+  & Wireshark core model
+  & Capture limits, pcap/pcapng magic values, 32-bit block alignment, dissector ordering/depth,
+    filter evaluation, and cross-module rejection theorems. \\
+\texttt{SUITE-E1}
+  & Capture and normalization
+  & Four-tier ordering, VXLAN/GENEVE termination, worker balancing, buffered transport, schema field
+    roles, and $\mathrm{type\_uid} = \mathrm{class\_uid}\times 100 + \mathrm{activity\_id}$. \\
+\texttt{SUITE-E2}
+  & Threat thresholds
+  & Administrative-share/executable rule; $\geq 15$ distinct targets in 10 seconds; $\geq 50$ events
+    in 60 seconds; $\geq 500$ events in 300 seconds. \\
+\texttt{SUITE-E3}
+  & Alert operations
+  & Baseline suppression, contextual score threshold, severity mapping, endpoint correlation, and
+    SOAR response selection. \\
+\texttt{SUITE-X1}
+  & Joint integration
+  & \texttt{Enterprise.Invariants} joint theorem plus top-level \texttt{Main} integration and
+    rejection theorems. \\
+\texttt{SUITE-F1}
+  & PRISM facets
+  & Presence and count of \texttt{Foundation.Arch}, \texttt{Foundation.Qual}, and
+    \texttt{Foundation.Sec} declarations. \\
+\texttt{SUITE-R1}
+  & Report integrity
+  & JSON parses; Markdown findings match JSON; latest pair is byte-identical to the timestamped
+    pair; committed fingerprint equals fresh fingerprint. \\
+\bottomrule
+\end{tabularx}
+\caption{Project-specific replacement for the Kuramoto stress benchmark.}
+\end{table}
+
+These are structural and formal audits. They do not assert numerical convergence, oscillator scaling,
+order parameters, or any other Kuramoto-specific property.
+
+\subsection{Report Contract}
+
+The runner emits two paired artifacts on every execution:
+
+\begin{lstlisting}
+reports/TEST_REPORT_LATEST.md
+reports/test_report_latest.json
+reports/TEST_REPORT_<UTC>.md
+reports/test_report_<UTC>.json
+reports/logs/<suite>_<UTC>.log
+\end{lstlisting}
+
+The JSON document uses schema identifier \texttt{lexlean-test-report/1}. It records UTC timestamps,
+git commit state, toolchain versions, module/theorem/definition/inductive/structure counts, source
+and semantic digests, Lean attestation, per-suite status and duration, the seven \texttt{TS-09}
+sub-suite results, PrismPM release hash and path, and the overall pass/fail summary.
+
+A semantic \texttt{fingerprint} is computed as SHA-256 over a canonical projection that omits
+volatile fields such as timestamps, durations, and absolute log paths. CI recomputes the fresh
+fingerprint and compares it with the committed latest JSON. This detects real report drift without
+failing merely because a new run occurred at a different time.
+
+The Markdown report contains an executive summary, suite matrix, all fourteen module rows, the
+\texttt{TS-09} sub-suite matrix, attestation and artifact audit, and a failure section with the
+failing command and captured stderr. It is appended to \texttt{\$GITHUB\_STEP\_SUMMARY} by the CI
+workflow.
+
+Only the two \texttt{*\_LATEST.*} files are committed. Timestamped reports and per-suite logs are
+retained as CI artifacts and excluded from git to prevent unbounded repository growth.
+
+\subsection{Local Gate}
+
+The local gate consists of \texttt{.githooks/pre-commit} and \texttt{install-hooks.sh}. The hook runs
+the full runner in hook mode, blocks the commit on any failure, and on success stages only:
+
+\begin{lstlisting}
+reports/TEST_REPORT_LATEST.md
+reports/test_report_latest.json
+\end{lstlisting}
+
+The installer initializes \texttt{git init -b main} when no repository exists, sets
+\texttt{core.hooksPath} to \texttt{.githooks}, and installs a fallback copy in
+\texttt{.git/hooks/pre-commit}. No fast path may skip kernel verification or PrismPM release
+checks.
+
+\subsection{CI/CD Pipeline}
+
+The workflow \texttt{.github/workflows/verify-test.yml} runs on pushes and pull requests to
+\texttt{main}/\texttt{master} and on manual dispatch. It uses branch/ref concurrency cancellation,
+checks out the repository, sets up Python 3.11, installs the pinned Lean toolchain from
+\texttt{lean-toolchain}, installs pinned LexLean and PrismPM binaries from a checked-in tool manifest
+with SHA-256 verification, and executes \texttt{./run-tests.sh --ci}.
+
+The verification job always uploads \texttt{reports/} as artifact
+\texttt{wireshark-lexlean-reports} and always appends the latest Markdown report to the job summary.
+A non-zero runner exit fails the job. Branch protection requires this \texttt{verify} check before
+merge.
+
+A dependent report-publishing job runs only on successful pushes to \texttt{main}. It republishes the
+uploaded report bundle as an immutable, timestamp-named artifact or release asset. It never modifies
+formal source, lockfiles, or configuration.
+
+\section{Traceability to Current Artifacts}
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabularx}{\textwidth}{p{5.0cm} X}
+\toprule
+\textbf{Current artifact} & \textbf{Harness coverage} \\
+\midrule
+\texttt{src/Wireshark/*.lex.tex}
+  & \texttt{TS-04}, \texttt{TS-05}, \texttt{SUITE-W1}. \\
+\texttt{src/Enterprise/CapturePipeline.lex.tex},
+\texttt{src/Enterprise/Normalization.lex.tex}
+  & \texttt{SUITE-E1}. \\
+\texttt{src/Enterprise/FileServerThreats.lex.tex}
+  & \texttt{SUITE-E2}. \\
+\texttt{src/Enterprise/AlertOperations.lex.tex}
+  & \texttt{SUITE-E3}. \\
+\texttt{src/Enterprise/Invariants.lex.tex}, \texttt{src/Main.lex.tex}
+  & \texttt{SUITE-X1}. \\
+\texttt{src/Foundation/*.lex.tex}
+  & \texttt{SUITE-F1}. \\
+\texttt{lexlean.toml}, \texttt{lexlean.lock}, \texttt{prismpm.toml}, \texttt{lean-toolchain}
+  & \texttt{TS-01}, \texttt{TS-02}, \texttt{TS-07}. \\
+\texttt{release/build/HASH/}
+  & \texttt{TS-08}. \\
+Generated \texttt{reports/*}
+  & \texttt{SUITE-R1} and the CI job summary. \\
+\bottomrule
+\end{tabularx}
+\caption{Traceability from the fourteen-module baseline to harness suites.}
+\end{table}
+
+The expected baseline is fourteen modules, 52 theorems, 99 definitions, 24 inductive types, and 39
+structures, with semantic ID
+\texttt{82a79bd033b89dc60f05bd8f58518b2f5d77d6e10c7b839ae02296ab422611b2}, Lean attestation
+\texttt{d633598a6e4acdde2a11a1ddc39e35eaeb3d8a2d6d61510c5508b266671b2460}, PrismPM release
+\texttt{79af3626858c67b10dad330a8e0a4ece40b728d9cde4072af3c9fe34da4a92b3}, and unchanged certified
+Rust export \texttt{a69be6edb75c35ed99b44712e5a8e986b45586515bb78ddaeda13c0b4d9b2a9b}. The harness
+must derive these values from tool output and a reviewed baseline manifest, not hard-code them in
+report prose. Legitimate model changes require an explicit baseline update in the same change set.
+
+\section{Acceptance Criteria}
+
+\begin{enumerate}
+  \item The runner reports nine of nine suites passing and exits zero.
+  \item JSON and Markdown reports agree on suite count, statuses, hashes, counts, and fingerprint.
+  \item Two consecutive unchanged runs produce identical semantic hash, attestation, release hash,
+        counts, and fingerprint; only timestamps and durations differ.
+  \item \texttt{verify.sh} delegates to the runner and preserves its successful exit behavior.
+  \item The pre-commit hook blocks a failing run and stages only the two latest report files on
+        success.
+  \item The hook installer succeeds even when no \texttt{.git} directory exists.
+  \item CI uses pinned, digest-verified tools with no placeholder installation step.
+  \item CI uploads reports on success and failure and appends the Markdown report to the job summary.
+  \item The \texttt{verify} status check is required by branch protection.
+  \item No \texttt{.lex.tex} source file, closed lexicon, or ADR-0001 modeled threshold is changed.
+\end{enumerate}
+
+\section{Consequences}
+
+\subsection{Positive}
+
+\begin{itemize}
+  \item Reviewers receive a generated, human-readable verification report with every change.
+  \item Failures are attributable to a named suite and include the exact command and captured output.
+  \item Local commits and remote CI enforce the same formal and release gates.
+  \item Report drift becomes a detectable fingerprint mismatch rather than unnoticed prose.
+  \item The harness is project-specific: all counts and invariants come from the fourteen-module
+        Wireshark/enterprise model.
+\end{itemize}
+
+\subsection{Negative and Mitigations}
+
+\begin{itemize}
+  \item Full kernel verification increases commit latency. \textbf{Mitigation:} cache only tool
+        installation; do not skip \texttt{TS-05} or \texttt{TS-08}.
+  \item Maintaining a baseline manifest adds review overhead. \textbf{Mitigation:} baseline changes
+        must be explicit and are displayed as drift in the generated report.
+  \item The hook mutates the index by staging reports. \textbf{Mitigation:} stage exactly two named
+        latest files and print a clear message; CI remains the authoritative gate.
+  \item Tool pinning can fail when upstream releases rotate. \textbf{Mitigation:} store digests in
+        \texttt{tools.lock} and update them through a reviewed change that reruns the full harness.
+\end{itemize}
+
+\section{Status}
+
+Accepted on 2026-11-23. The nine-suite verification harness, report generation engine, pre-commit hook, and CI pipeline have been implemented and verified. Initial canonical fingerprint recorded:
+\begin{itemize}
+  \item \textbf{Canonical Fingerprint:} \texttt{71cad005580a4c120936b76efe39954226f2e65a4edeaf81a12f2ec4cead793b}
+  \item \textbf{Lean Kernel Attestation:} \texttt{d633598a6e4acdde2a11a1ddc39e35eaeb3d8a2d6d61510c5508b266671b2460}
+  \item \textbf{Semantic IR ID:} \texttt{82a79bd033b89dc60f05bd8f58518b2f5d77d6e10c7b839ae02296ab422611b2}
+  \item \textbf{PrismPM Release:} \texttt{79af3626858c67b10dad330a8e0a4ece40b728d9cde4072af3c9fe34da4a92b3}
+  \item \textbf{Verified Reports:} \texttt{reports/TEST\_REPORT\_LATEST.md} and \texttt{reports/test\_report\_latest.json}
+\end{itemize}
+
+\end{document}

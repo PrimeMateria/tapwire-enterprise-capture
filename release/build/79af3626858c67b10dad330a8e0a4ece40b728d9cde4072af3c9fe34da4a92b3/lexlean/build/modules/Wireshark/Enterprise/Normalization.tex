@@ -1,0 +1,142 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{TelemetrySchema}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{nativeZeek}: \texttt{()}.\par
+\noindent Constructor \texttt{ecs}: \texttt{()}.\par
+\noindent Constructor \texttt{ocsf}: \texttt{()}.\par
+\noindent Constructor \texttt{udm}: \texttt{()}.\par
+\subsection*{\texttt{ZeekLogSource}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{connLog}: \texttt{()}.\par
+\noindent Constructor \texttt{smbMappingLog}: \texttt{()}.\par
+\noindent Constructor \texttt{smbFilesLog}: \texttt{()}.\par
+\noindent Constructor \texttt{suricataAlert}: \texttt{()}.\par
+\subsection*{\texttt{NormalizedEvent}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{sourceLog}: \texttt{ZeekLogSource}.\par
+\noindent Field \texttt{schema}: \texttt{TelemetrySchema}.\par
+\noindent Field \texttt{sourceIpField}: \texttt{Nat}.\par
+\noindent Field \texttt{destinationIpField}: \texttt{Nat}.\par
+\noindent Field \texttt{fileNameField}: \texttt{Nat}.\par
+\noindent Field \texttt{filePathField}: \texttt{Nat}.\par
+\noindent Field \texttt{typeUid}: \texttt{Nat}.\par
+\subsection*{\texttt{fileSystemClassUid}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{1001}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{networkActivityClassUid}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{4001}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{fileCreationActivityId}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{1}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{fileRenamingActivityId}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{5}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{fileSystemActivityTypeUid}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(activityId : Nat)}.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{((LexLeanRuntime.multiply (fileSystemClassUid) (100) : Nat) + activityId)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{sourceIpFieldCode}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(schema : TelemetrySchema)}.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match schema with | TelemetrySchema.nativeZeek => 31 | TelemetrySchema.ecs => 1 | TelemetrySchema.ocsf => 11 | TelemetrySchema.udm => 21)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{destinationIpFieldCode}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(schema : TelemetrySchema)}.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match schema with | TelemetrySchema.nativeZeek => 32 | TelemetrySchema.ecs => 2 | TelemetrySchema.ocsf => 12 | TelemetrySchema.udm => 22)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{fileNameFieldCode}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(schema : TelemetrySchema)}.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match schema with | TelemetrySchema.nativeZeek => 33 | TelemetrySchema.ecs => 3 | TelemetrySchema.ocsf => 13 | TelemetrySchema.udm => 23)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{filePathFieldCode}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(schema : TelemetrySchema)}.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match schema with | TelemetrySchema.nativeZeek => 34 | TelemetrySchema.ecs => 4 | TelemetrySchema.ocsf => 14 | TelemetrySchema.udm => 24)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{hasCanonicalNetworkEndpoints}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(event : NormalizedEvent)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{((Nat.beq ((event).sourceIpField) (sourceIpFieldCode ((event).schema))) \&\& (Nat.beq ((event).destinationIpField) (destinationIpFieldCode ((event).schema))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{hasCanonicalFileFields}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(event : NormalizedEvent)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{((Nat.beq ((event).fileNameField) (fileNameFieldCode ((event).schema))) \&\& (Nat.beq ((event).filePathField) (filePathFieldCode ((event).schema))))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isFileCreationUid}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(typeUid : Nat)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(Nat.beq (typeUid) (fileSystemActivityTypeUid (fileCreationActivityId)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isFileRenamingUid}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(typeUid : Nat)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(Nat.beq (typeUid) (fileSystemActivityTypeUid (fileRenamingActivityId)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isKnownFileActivityUid}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(typeUid : Nat)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(isFileCreationUid (typeUid) || isFileRenamingUid (typeUid))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{areFileActivityUidsDistinctAndKnown}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{((!(Nat.beq (fileSystemActivityTypeUid (fileCreationActivityId)) (fileSystemActivityTypeUid (fileRenamingActivityId)))) \&\& isKnownFileActivityUid (fileSystemActivityTypeUid (fileRenamingActivityId)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{defaultEcsFileEvent}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{NormalizedEvent}.\par
+\noindent Definition: \texttt{(\{ sourceLog := ZeekLogSource.smbFilesLog, schema := TelemetrySchema.ecs, sourceIpField := 1, destinationIpField := 2, fileNameField := 3, filePathField := 4, typeUid := 0 \} : NormalizedEvent)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{defaultOcsfRenameEvent}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{NormalizedEvent}.\par
+\noindent Definition: \texttt{(\{ sourceLog := ZeekLogSource.smbFilesLog, schema := TelemetrySchema.ocsf, sourceIpField := 11, destinationIpField := 12, fileNameField := 13, filePathField := 14, typeUid := 100105 \} : NormalizedEvent)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{file\_creation\_uid\_matches\_specification}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Nat.beq (fileSystemActivityTypeUid (fileCreationActivityId)) (100101)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{file\_renaming\_uid\_matches\_specification}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Nat.beq (fileSystemActivityTypeUid (fileRenamingActivityId)) (100105)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{file\_activity\_uids\_are\_distinct}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(areFileActivityUidsDistinctAndKnown = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{ecs\_event\_has\_canonical\_fields}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((hasCanonicalNetworkEndpoints (defaultEcsFileEvent) \&\& hasCanonicalFileFields (defaultEcsFileEvent)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{ocsf\_rename\_event\_is\_known\_file\_activity}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(((hasCanonicalNetworkEndpoints (defaultOcsfRenameEvent) \&\& hasCanonicalFileFields (defaultOcsfRenameEvent)) \&\& isKnownFileActivityUid ((defaultOcsfRenameEvent).typeUid)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\end{document}

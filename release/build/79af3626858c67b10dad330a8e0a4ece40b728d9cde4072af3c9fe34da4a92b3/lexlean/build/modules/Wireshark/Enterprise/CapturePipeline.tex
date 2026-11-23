@@ -1,0 +1,82 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{MirrorEncapsulation}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{physicalTap}: \texttt{()}.\par
+\noindent Constructor \texttt{spanPort}: \texttt{()}.\par
+\noindent Constructor \texttt{vxlanUdp}: \texttt{()}.\par
+\noindent Constructor \texttt{geneveUdp}: \texttt{()}.\par
+\subsection*{\texttt{PipelineTier}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{trafficAcquisition}: \texttt{()}.\par
+\noindent Constructor \texttt{passiveSensorProcessing}: \texttt{()}.\par
+\noindent Constructor \texttt{decoupledTransportBuffering}: \texttt{()}.\par
+\noindent Constructor \texttt{ingestionStorage}: \texttt{()}.\par
+\subsection*{\texttt{CapturePipeline}}
+\noindent Kind: \texttt{structure}.\par
+\noindent Field \texttt{encapsulation}: \texttt{MirrorEncapsulation}.\par
+\noindent Field \texttt{tunnelTerminated}: \texttt{Nat}.\par
+\noindent Field \texttt{reusePortEnabled}: \texttt{Nat}.\par
+\noindent Field \texttt{workerCount}: \texttt{Nat}.\par
+\noindent Field \texttt{bufferedTransport}: \texttt{Nat}.\par
+\noindent Field \texttt{topicCount}: \texttt{Nat}.\par
+\subsection*{\texttt{tierIndex}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(tier : PipelineTier)}.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match tier with | PipelineTier.trafficAcquisition => 0 | PipelineTier.passiveSensorProcessing => 1 | PipelineTier.decoupledTransportBuffering => 2 | PipelineTier.ingestionStorage => 3)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isEncapsulationHandled}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(encapsulation : MirrorEncapsulation) (tunnelTerminated : Nat)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(match encapsulation with | MirrorEncapsulation.physicalTap => true | MirrorEncapsulation.spanPort => true | MirrorEncapsulation.vxlanUdp => (Nat.beq (tunnelTerminated) (1)) | MirrorEncapsulation.geneveUdp => (Nat.beq (tunnelTerminated) (1)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{hasSensorLoadBalancing}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(pipeline : CapturePipeline)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{((Nat.beq ((pipeline).reusePortEnabled) (1)) \&\& (Nat.ble (2) ((pipeline).workerCount)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{hasDecoupledTransport}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(pipeline : CapturePipeline)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{((Nat.beq ((pipeline).bufferedTransport) (1)) \&\& (Nat.blt (0) ((pipeline).topicCount)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{isPipelineWellFormed}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(pipeline : CapturePipeline)}.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(isEncapsulationHandled ((pipeline).encapsulation) ((pipeline).tunnelTerminated) \&\& (hasSensorLoadBalancing (pipeline) \&\& hasDecoupledTransport (pipeline)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{defaultEnterprisePipeline}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{CapturePipeline}.\par
+\noindent Definition: \texttt{(\{ encapsulation := MirrorEncapsulation.geneveUdp, tunnelTerminated := 1, reusePortEnabled := 1, workerCount := 8, bufferedTransport := 1, topicCount := 3 \} : CapturePipeline)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{unterminatedVxlanPipeline}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{CapturePipeline}.\par
+\noindent Definition: \texttt{(\{ encapsulation := MirrorEncapsulation.vxlanUdp, tunnelTerminated := 0, reusePortEnabled := 1, workerCount := 8, bufferedTransport := 1, topicCount := 3 \} : CapturePipeline)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{default\_pipeline\_is\_well\_formed}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(isPipelineWellFormed (defaultEnterprisePipeline) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{unterminated\_vxlan\_pipeline\_is\_rejected}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(isPipelineWellFormed (unterminatedVxlanPipeline) = false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{pipeline\_tiers\_are\_strictly\_ordered}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(((Nat.blt (tierIndex (PipelineTier.trafficAcquisition)) (tierIndex (PipelineTier.passiveSensorProcessing))) \&\& ((Nat.blt (tierIndex (PipelineTier.passiveSensorProcessing)) (tierIndex (PipelineTier.decoupledTransportBuffering))) \&\& (Nat.blt (tierIndex (PipelineTier.decoupledTransportBuffering)) (tierIndex (PipelineTier.ingestionStorage))))) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{default\_pipeline\_buffers\_sensor\_output}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(hasDecoupledTransport (defaultEnterprisePipeline) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\end{document}

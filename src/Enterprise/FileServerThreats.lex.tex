@@ -1,0 +1,273 @@
+\begin{lexlean}{Enterprise.FileServerThreats}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{wireshark.titles@1.0.0}
+\title{Enterprise file-server threat lifecycle model}
+\begin{semanticmodule}
+inductive{
+  name: AttackPhase,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: reconnaissance, fields: []},
+    {name: lateralMovement, fields: []},
+    {name: destructionEncryption, fields: []},
+    {name: exfiltration, fields: []}
+  ]
+}
+
+inductive{
+  name: ShareKind,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: ipcShare, fields: []},
+    {name: cShare, fields: []},
+    {name: adminShare, fields: []},
+    {name: sysvolShare, fields: []},
+    {name: customShare, fields: []}
+  ]
+}
+
+inductive{
+  name: FileAction,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: fileCreate, fields: []},
+    {name: fileWrite, fields: []},
+    {name: fileOpen, fields: []},
+    {name: fileRename, fields: []},
+    {name: fileRead, fields: []}
+  ]
+}
+
+inductive{
+  name: ExtensionKind,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: executableExtension, fields: []},
+    {name: ransomwareExtension, fields: []},
+    {name: benignExtension, fields: []}
+  ]
+}
+
+structure{
+  name: FileShareEvent,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: share, type: ShareKind},
+    {name: action, type: FileAction},
+    {name: extension, type: ExtensionKind},
+    {name: distinctTargets, type: Nat},
+    {name: eventCount, type: Nat},
+    {name: windowSeconds, type: Nat}
+  ]
+}
+
+definition{
+  name: isAdministrativeShare,
+  parameters: [share : ShareKind],
+  result: Bool,
+  body: (match share
+    | ShareKind.cShare => true
+    | ShareKind.adminShare => true
+    | ShareKind.ipcShare => false
+    | ShareKind.sysvolShare => false
+    | ShareKind.customShare => false)
+}
+
+definition{
+  name: isDefaultShare,
+  parameters: [share : ShareKind],
+  result: Bool,
+  body: (match share
+    | ShareKind.ipcShare => true
+    | ShareKind.cShare => true
+    | ShareKind.adminShare => true
+    | ShareKind.sysvolShare => false
+    | ShareKind.customShare => false)
+}
+
+definition{
+  name: isPayloadAction,
+  parameters: [action : FileAction],
+  result: Bool,
+  body: (match action
+    | FileAction.fileCreate => true
+    | FileAction.fileWrite => true
+    | FileAction.fileOpen => true
+    | FileAction.fileRename => false
+    | FileAction.fileRead => false)
+}
+
+definition{
+  name: isRenameAction,
+  parameters: [action : FileAction],
+  result: Bool,
+  body: (match action
+    | FileAction.fileCreate => false
+    | FileAction.fileWrite => false
+    | FileAction.fileOpen => false
+    | FileAction.fileRename => true
+    | FileAction.fileRead => false)
+}
+
+definition{
+  name: isReadAction,
+  parameters: [action : FileAction],
+  result: Bool,
+  body: (match action
+    | FileAction.fileCreate => false
+    | FileAction.fileWrite => false
+    | FileAction.fileOpen => false
+    | FileAction.fileRename => false
+    | FileAction.fileRead => true)
+}
+
+definition{
+  name: isExecutableExtension,
+  parameters: [extension : ExtensionKind],
+  result: Bool,
+  body: (match extension
+    | ExtensionKind.executableExtension => true
+    | ExtensionKind.ransomwareExtension => false
+    | ExtensionKind.benignExtension => false)
+}
+
+definition{
+  name: isRansomwareExtension,
+  parameters: [extension : ExtensionKind],
+  result: Bool,
+  body: (match extension
+    | ExtensionKind.executableExtension => false
+    | ExtensionKind.ransomwareExtension => true
+    | ExtensionKind.benignExtension => false)
+}
+
+definition{
+  name: matchesRemotePayloadRule,
+  parameters: [event : FileShareEvent],
+  result: Bool,
+  body: ((isAdministrativeShare (project event share)) && ((isPayloadAction (project event action)) && (isExecutableExtension (project event extension))))
+}
+
+definition{
+  name: matchesShareEnumerationRule,
+  parameters: [event : FileShareEvent],
+  result: Bool,
+  body: ((isDefaultShare (project event share)) && ((15 <=? (project event distinctTargets)) && ((project event windowSeconds) <=? 10)))
+}
+
+definition{
+  name: matchesRansomwareRule,
+  parameters: [event : FileShareEvent],
+  result: Bool,
+  body: ((((isRenameAction (project event action)) || (isRansomwareExtension (project event extension))) && (50 <=? (project event eventCount))) && ((project event windowSeconds) <=? 60))
+}
+
+definition{
+  name: matchesExfiltrationRule,
+  parameters: [event : FileShareEvent],
+  result: Bool,
+  body: (((isReadAction (project event action)) && (500 <=? (project event eventCount))) && ((project event windowSeconds) <=? 300))
+}
+
+definition{
+  name: phaseCode,
+  parameters: [phase : AttackPhase],
+  result: Nat,
+  body: (match phase
+    | AttackPhase.reconnaissance => 1135
+    | AttackPhase.lateralMovement => 1021
+    | AttackPhase.destructionEncryption => 1486
+    | AttackPhase.exfiltration => 1567)
+}
+
+definition{
+  name: areThreatPhaseCodesDistinct,
+  parameters: [],
+  result: Bool,
+  body: ((not ((phaseCode (ctor AttackPhase.reconnaissance)) =? (phaseCode (ctor AttackPhase.lateralMovement)))) && (not ((phaseCode (ctor AttackPhase.destructionEncryption)) =? (phaseCode (ctor AttackPhase.exfiltration)))))
+}
+
+definition{
+  name: administrativePayloadEvent,
+  parameters: [],
+  result: FileShareEvent,
+  body: (record FileShareEvent {share := (ctor ShareKind.cShare), action := (ctor FileAction.fileCreate), extension := (ctor ExtensionKind.executableExtension), distinctTargets := 1, eventCount := 1, windowSeconds := 60})
+}
+
+definition{
+  name: shareFinderEvent,
+  parameters: [],
+  result: FileShareEvent,
+  body: (record FileShareEvent {share := (ctor ShareKind.ipcShare), action := (ctor FileAction.fileOpen), extension := (ctor ExtensionKind.benignExtension), distinctTargets := 18, eventCount := 18, windowSeconds := 10})
+}
+
+definition{
+  name: ransomwareEvent,
+  parameters: [],
+  result: FileShareEvent,
+  body: (record FileShareEvent {share := (ctor ShareKind.customShare), action := (ctor FileAction.fileRename), extension := (ctor ExtensionKind.ransomwareExtension), distinctTargets := 1, eventCount := 50, windowSeconds := 60})
+}
+
+definition{
+  name: exfiltrationEvent,
+  parameters: [],
+  result: FileShareEvent,
+  body: (record FileShareEvent {share := (ctor ShareKind.customShare), action := (ctor FileAction.fileRead), extension := (ctor ExtensionKind.benignExtension), distinctTargets := 1, eventCount := 500, windowSeconds := 300})
+}
+
+definition{
+  name: benignReadEvent,
+  parameters: [],
+  result: FileShareEvent,
+  body: (record FileShareEvent {share := (ctor ShareKind.customShare), action := (ctor FileAction.fileRead), extension := (ctor ExtensionKind.benignExtension), distinctTargets := 1, eventCount := 10, windowSeconds := 300})
+}
+
+theorem{
+  name: administrative_payload_event_is_detected,
+  parameters: [],
+  statement: ((matchesRemotePayloadRule (administrativePayloadEvent)) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: share_finder_pattern_is_detected,
+  parameters: [],
+  statement: ((matchesShareEnumerationRule (shareFinderEvent)) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: ransomware_pattern_is_detected,
+  parameters: [],
+  statement: ((matchesRansomwareRule (ransomwareEvent)) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: exfiltration_pattern_is_detected,
+  parameters: [],
+  statement: ((matchesExfiltrationRule (exfiltrationEvent)) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: benign_read_is_not_exfiltration,
+  parameters: [],
+  statement: ((matchesExfiltrationRule (benignReadEvent)) = false),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: threat_phase_codes_are_distinct,
+  parameters: [],
+  statement: ((areThreatPhaseCodesDistinct) = true),
+  proof: reflexivity{}
+}
+\end{semanticmodule}
+\end{lexlean}

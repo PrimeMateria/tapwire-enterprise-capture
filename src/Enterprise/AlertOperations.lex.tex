@@ -1,0 +1,206 @@
+\begin{lexlean}{Enterprise.AlertOperations}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{wireshark.titles@1.0.0}
+\title{Enterprise alert engineering and response model}
+\begin{semanticmodule}
+inductive{
+  name: AlertLevel,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: informational, fields: []},
+    {name: medium, fields: []},
+    {name: high, fields: []},
+    {name: critical, fields: []}
+  ]
+}
+
+inductive{
+  name: ResponseAction,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: flagForHunting, fields: []},
+    {name: revokeSession, fields: []},
+    {name: isolateHost, fields: []},
+    {name: killEncryptingProcess, fields: []},
+    {name: blockEgress, fields: []}
+  ]
+}
+
+inductive{
+  name: BaselineClass,
+  type_parameters: [],
+  parameters: [],
+  constructors: [
+    {name: vulnerabilityScanner, fields: []},
+    {name: backupAgent, fields: []},
+    {name: managementSubnet, fields: []},
+    {name: untrustedWifi, fields: []}
+  ]
+}
+
+structure{
+  name: AlertContext,
+  type_parameters: [],
+  parameters: [],
+  fields: [
+    {name: baseline, type: BaselineClass},
+    {name: suppressed, type: Nat},
+    {name: offHours, type: Nat},
+    {name: untrustedSegment, type: Nat},
+    {name: baseScore, type: Nat},
+    {name: threshold, type: Nat},
+    {name: networkCorrelated, type: Nat},
+    {name: endpointCorrelated, type: Nat}
+  ]
+}
+
+definition{
+  name: isSuppressed,
+  parameters: [context : AlertContext],
+  result: Bool,
+  body: ((project context suppressed) =? 1)
+}
+
+definition{
+  name: baselineWeight,
+  parameters: [baseline : BaselineClass],
+  result: Nat,
+  body: (match baseline
+    | BaselineClass.vulnerabilityScanner => 0
+    | BaselineClass.backupAgent => 0
+    | BaselineClass.managementSubnet => 10
+    | BaselineClass.untrustedWifi => 30)
+}
+
+definition{
+  name: contextualScore,
+  parameters: [context : AlertContext],
+  result: Nat,
+  body: (((project context baseScore) + (if ((project context offHours) =? 1) then 30 else 0)) + ((if ((project context untrustedSegment) =? 1) then 20 else 0) + (baselineWeight (project context baseline))))
+}
+
+definition{
+  name: hasEndpointCorrelation,
+  parameters: [context : AlertContext],
+  result: Bool,
+  body: ((project context endpointCorrelated) =? 1)
+}
+
+definition{
+  name: shouldDispatchAlert,
+  parameters: [context : AlertContext],
+  result: Bool,
+  body: ((((not (isSuppressed context)) && ((project context threshold) <=? (contextualScore context))) && ((project context networkCorrelated) =? 1)) && (hasEndpointCorrelation context))
+}
+
+definition{
+  name: alertLevelForScore,
+  parameters: [score : Nat],
+  result: AlertLevel,
+  body: (if (80 <=? score) then (ctor AlertLevel.critical) else (if (60 <=? score) then (ctor AlertLevel.high) else (if (30 <=? score) then (ctor AlertLevel.medium) else (ctor AlertLevel.informational))))
+}
+
+definition{
+  name: alertLevel,
+  parameters: [context : AlertContext],
+  result: AlertLevel,
+  body: (alertLevelForScore (contextualScore context))
+}
+
+definition{
+  name: responseForLevel,
+  parameters: [level : AlertLevel],
+  result: ResponseAction,
+  body: (match level
+    | AlertLevel.informational => (ctor ResponseAction.flagForHunting)
+    | AlertLevel.medium => (ctor ResponseAction.flagForHunting)
+    | AlertLevel.high => (ctor ResponseAction.revokeSession)
+    | AlertLevel.critical => (ctor ResponseAction.isolateHost))
+}
+
+definition{
+  name: responseCode,
+  parameters: [action : ResponseAction],
+  result: Nat,
+  body: (match action
+    | ResponseAction.flagForHunting => 1
+    | ResponseAction.revokeSession => 2
+    | ResponseAction.isolateHost => 3
+    | ResponseAction.killEncryptingProcess => 4
+    | ResponseAction.blockEgress => 5)
+}
+
+definition{
+  name: areResponseCodesDistinct,
+  parameters: [],
+  result: Bool,
+  body: ((not ((responseCode (ctor ResponseAction.isolateHost)) =? (responseCode (ctor ResponseAction.killEncryptingProcess)))) && (not ((responseCode (ctor ResponseAction.blockEgress)) =? (responseCode (ctor ResponseAction.flagForHunting)))))
+}
+
+definition{
+  name: highRiskOffHoursContext,
+  parameters: [],
+  result: AlertContext,
+  body: (record AlertContext {baseline := (ctor BaselineClass.untrustedWifi), suppressed := 0, offHours := 1, untrustedSegment := 1, baseScore := 30, threshold := 60, networkCorrelated := 1, endpointCorrelated := 1})
+}
+
+definition{
+  name: scannerContext,
+  parameters: [],
+  result: AlertContext,
+  body: (record AlertContext {baseline := (ctor BaselineClass.vulnerabilityScanner), suppressed := 1, offHours := 0, untrustedSegment := 0, baseScore := 90, threshold := 60, networkCorrelated := 1, endpointCorrelated := 1})
+}
+
+definition{
+  name: businessHoursContext,
+  parameters: [],
+  result: AlertContext,
+  body: (record AlertContext {baseline := (ctor BaselineClass.managementSubnet), suppressed := 0, offHours := 0, untrustedSegment := 0, baseScore := 40, threshold := 60, networkCorrelated := 1, endpointCorrelated := 1})
+}
+
+theorem{
+  name: high_risk_context_dispatches_alert,
+  parameters: [],
+  statement: ((shouldDispatchAlert (highRiskOffHoursContext)) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: high_risk_context_is_critical,
+  parameters: [],
+  statement: ((alertLevel (highRiskOffHoursContext)) = (ctor AlertLevel.critical)),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: scanner_baseline_suppresses_alert,
+  parameters: [],
+  statement: ((shouldDispatchAlert (scannerContext)) = false),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: business_hours_context_stays_below_threshold,
+  parameters: [],
+  statement: ((shouldDispatchAlert (businessHoursContext)) = false),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: high_risk_response_is_host_isolation,
+  parameters: [],
+  statement: ((responseCode (responseForLevel (alertLevel (highRiskOffHoursContext)))) = 3),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: response_codes_are_distinct,
+  parameters: [],
+  statement: ((areResponseCodesDistinct) = true),
+  proof: reflexivity{}
+}
+\end{semanticmodule}
+\end{lexlean}

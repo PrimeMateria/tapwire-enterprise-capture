@@ -1,0 +1,48 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{ComparisonOp}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{equal}: \texttt{()}.\par
+\noindent Constructor \texttt{greaterThan}: \texttt{()}.\par
+\noindent Constructor \texttt{lessThan}: \texttt{()}.\par
+\subsection*{\texttt{FilterExpr}}
+\noindent Kind: \texttt{inductive}.\par
+\noindent Constructor \texttt{literal}: \texttt{(Nat)}.\par
+\noindent Constructor \texttt{comparison}: \texttt{(ComparisonOp, Nat, Nat)}.\par
+\noindent Constructor \texttt{conjunction}: \texttt{(FilterExpr, FilterExpr)}.\par
+\noindent Constructor \texttt{negation}: \texttt{(FilterExpr)}.\par
+\subsection*{\texttt{evaluateFilter}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(expression : FilterExpr)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Bool}.\par
+\noindent Definition: \texttt{(match expression with | FilterExpr.literal value => (Nat.blt (0) (value)) | FilterExpr.comparison op left right => (match op with | ComparisonOp.equal => (Nat.beq (left) (right)) | ComparisonOp.greaterThan => (Nat.blt (right) (left)) | ComparisonOp.lessThan => (Nat.blt (left) (right))) | FilterExpr.conjunction left right => (evaluateFilter (left) \&\& evaluateFilter (right)) | FilterExpr.negation inner => (!evaluateFilter (inner)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{filterNodeCount}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Parameters: \texttt{(expression : FilterExpr)}.\par
+\noindent Execution: executable, non-escaping closures only.\par
+\noindent Type: \texttt{Nat}.\par
+\noindent Definition: \texttt{(match expression with | FilterExpr.literal \_ => 1 | FilterExpr.comparison \_ \_ \_ => 1 | FilterExpr.conjunction left right => (1 + (filterNodeCount (left) + filterNodeCount (right))) | FilterExpr.negation inner => (1 + filterNodeCount (inner)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{tcpPortFilter}}
+\noindent Kind: \texttt{definition}.\par
+\noindent Type: \texttt{FilterExpr}.\par
+\noindent Definition: \texttt{FilterExpr.conjunction (FilterExpr.comparison (ComparisonOp.equal) (443) (443)) (FilterExpr.negation (FilterExpr.comparison (ComparisonOp.greaterThan) (443) (1024)))}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{tcp\_port\_filter\_evaluates\_true}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(evaluateFilter (tcpPortFilter) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{tcp\_port\_filter\_has\_four\_nodes}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(filterNodeCount (tcpPortFilter) = 4)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{failed\_equality\_comparison\_is\_false}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(evaluateFilter (FilterExpr.comparison (ComparisonOp.equal) (80) (443)) = false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\end{document}

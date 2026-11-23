@@ -1,0 +1,16 @@
+spec = "lexlean/entry/1"
+id = "enterprise-normalization"
+category = "label-word"
+surface_arity = 0
+frame = "atom"
+
+[denotation]
+kind = "defined"
+value = "(const lexlean.std.nat::nat)"
+
+[[form]]
+id = "enterprise-normalization"
+channel = "text"
+surface = "Enterprise telemetry schema normalization model"
+canonical_source = true
+features = ["sentence-case", "singular"]

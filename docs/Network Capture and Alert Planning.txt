@@ -1,0 +1,340 @@
+﻿Enterprise Network Capture Pipeline Integration and File-Server Access Threat Analytics Architecture
+High-Throughput Network Capture Pipeline Architecture
+Ingestion, Decoupling, and Passive Traffic Analysis Mechanics
+Modern enterprise security architectures rely on high-fidelity network packet capture and passive metadata generation to establish unalterable visibility across multi-cloud and on-premise infrastructure [1, 2]. Deploying a continuous network analysis pipeline requires decoupling raw packet acquisition from compute-intensive threat detection and log indexing layers to prevent backpressure and telemetry loss [2, 3].
+
+
+In physical enterprise networks, packet mirrors are sourced directly from network TAPs or SPAN ports on core switching fabric. In cloud-native environments, mirroring is implemented via virtualized packet taps such as Amazon Web Services (AWS) Traffic Mirroring or Google Cloud Platform (GCP) Network Security Integration [2]. AWS Traffic Mirroring encapsulates Layer-2 frames into User Datagram Protocol (UDP) Virtual Extensible LAN (VXLAN) packets, whereas GCP utilizes Generic Network Virtualization Encapsulation (GENEVE) [2].
+
+
+To process high-gigabit encapsulated streams without excessive hardware overhead, passive monitoring nodes running Zeek network security monitors leverage custom UDP-based packet source plugins [2]. These plugins terminate VXLAN/GENEVE encapsulation prior to processing, bypassing redundant tunnel log generation [2]. Furthermore, horizontal scaling across multi-core sensor hardware is achieved by setting the SO_REUSEPORT socket option on the UDP listener socket [2]. This enables the Linux kernel to perform flow-hashing on outer IP and UDP headers, evenly balancing incoming packet flows across unprivileged Zeek worker processes [2].
+
+
+The architectural flow of telemetry through the enterprise capture stack moves sequentially across four primary functional tiers:
+
+
+1. Traffic Acquisition Tier: Physical TAPs, switch SPAN ports, and cloud packet mirroring interfaces (AWS VXLAN / GCP GENEVE) capture raw network traffic [2].
+2. Passive Sensor Processing Tier: Sensor instances running Zeek and Suricata consume decapsulated UDP streams via SO_REUSEPORT socket clusters, generating structured JSON log streams [1, 2, 4].
+3. Decoupled Transport Buffering Tier: Log output drivers, such as the zeek-kafka plugin, publish stream events directly into Kafka topics partitioned by protocol type [2, 3].
+4. Ingestion and Storage Tier: OpenTelemetry Collectors, Fluent Bit, or Logstash instances consume Kafka streams, execute ingest pipelines, normalize fields, and index data into Elasticsearch or OpenSearch clusters [3, 5, 6].
+
+
+Once packets are parsed by Zeek and Suricata, logs are generated using structured JSON policies, such as appending @load policy/tuning/json-logs.zeek to the site configuration [1]. Direct output plugins, such as zeek-kafka, stream JSON telemetry directly into an Apache Kafka distributed messaging bus [2]. Kafka serves as a persistent transport buffer, insulating upstream network sensors from downstream indexing outages or bursty traffic spikes [3]. Kafka consumer groups—managed by OpenTelemetry Collectors (kafkareceiver), Fluent Bit, or Logstash—pull raw JSON events from protocol-specific topics such as zeek-conn, zeek-smb, and zeek-dns [3, 4, 5]. The consumer tier processes data transformations and executes ingest pipelines within Elasticsearch or OpenSearch before writing normalized events to storage [1, 5, 6].
+Schema Normalization: Elastic Common Schema and OCSF Integration
+A primary challenge in enterprise telemetry integration is reconciling vendor-native log formats with standard SIEM taxonomies [4, 7]. Network telemetry emitted by Zeek log files—such as smb_mapping.log, smb_files.log, and conn.log—and Suricata NIDS alerts contains protocol-specific naming conventions that complicate cross-stack correlation with host-level endpoint logs [1, 4, 8, 9].
+
+
+Normalizing data across the Elastic Common Schema (ECS) and the Open Cybersecurity Schema Framework (OCSF) resolves naming discrepancies across vendors [1, 7]. ECS organizes network metadata into unified root fields, such as source.ip, destination.ip, and file.name [1, 10]. Concurrently, OCSF categorizes events into standardized classes, such as Class 1001 (File System Activity) within Category 1 (System Activity), and Class 4001 (Network Activity) within Category 4 (Network Activity) [11, 12, 13]. Within OCSF Class 1001, specific activities are explicitly mapped using the numeric evaluation formula type_uid = class_uid * 100 + activity_id, yielding unique identifiers like 100101 for File Creation and 100105 for File Renaming [11, 13].
+
+
+Native Zeek Log & Field
+	Protocol Field Description
+	Elastic Common Schema (ECS) Field
+	OCSF Schema Mapping
+	Google UDM Standard Field
+	conn.log: id.orig_h
+	Source IP Address
+	source.ip
+	src_endpoint.ip (Class 4001)
+	principal.ip
+	conn.log: id.resp_h
+	Destination IP Address
+	destination.ip
+	dst_endpoint.ip (Class 4001)
+	target.ip
+	smb_mapping.log: path
+	SMB Share Tree Path
+	file.path / network_traffic.smb.path
+	file.path / unmapped.share_path
+	target.file.full_path
+	smb_mapping.log: service
+	SMB Resource Type
+	network.protocol / service.name
+	connection_info.protocol_name
+	network.application_protocol
+	smb_files.log: name
+	Accessed File Name
+	file.name
+	file.name (Class 1001)
+	target.file.name
+	smb_files.log: action
+	File Operation Executed
+	event.type / file.code
+	activity_id (Class 1001)
+	metadata.description
+	smb_files.log: size
+	File Size in Bytes
+	file.size
+	file.size (Class 1001)
+	target.file.size
+	smb_files.log: prev_name
+	Previous Name (Rename Ops)
+	file.old_name
+	file.previous_name (Class 1001)
+	additional.fields.prev_name
+	SIEM Integration, Enterprise Reporting, and Security Orchestration
+Integrating high-volume capture pipelines into existing reporting infrastructure relies on structured pipelines feeding enterprise SIEM dashboards, threat hunting consoles, and automated response engines [4, 7]. When network telemetry is ingested into Elasticsearch or OpenSearch, Ingest Pipelines validate schema enforcement, enrich events with Active Directory identity context, and append Geolocation metadata [1, 5, 6].
+
+
+Normalized event streams enable continuous risk scoring and multi-layer event correlation [4, 7]. Correlating network-level SMB interactions—such as an administrative share connection logged in smb_mapping.log—with host-level telemetry—such as Windows Security Event ID 5145 or Sysmon Event ID 11—provides complete visibility into access chains [14, 15, 16]. When suspicious activity meets designated risk thresholds, Security Orchestration, Automation, and Response (SOAR) platforms consume SIEM alerts to execute automated response playbooks, such as isolating compromised endpoints, terminating Active Directory user sessions, or applying dynamic block rules on perimeter firewalls [4, 17].
+
+
+________________
+
+
+File-Server Threat Analytics and Access Pattern Dynamics
+Threat Vector Taxonomy on Distributed File Systems
+Distributed file servers hosting Server Message Block (SMB) and Network File System (NFS) protocols represent prime targets for lateral movement, privilege escalation, ransomware propagation, and data exfiltration [8, 18, 19, 20]. Attackers capitalize on enterprise file shares due to the wealth of sensitive business data and administrative access vectors standard configurations provide [18, 19].
+
+
+The lifecycle of targeted file-server exploitation unfolds across four sequential operational phases:
+
+
+1. Reconnaissance Phase: Adversaries execute Network Share Discovery (MITRE ATT&CK T1135) using automated utility scripts, such as PowerView's Invoke-ShareFinder, sequentially probing subnets for accessible shares (IPC$, C$, ADMIN$, SYSVOL, and custom file shares) to locate vulnerable repositories [19, 20].
+2. Lateral Movement Phase: Attackers exploit Administrative Shares (MITRE ATT&CK T1021.002) using stolen administrative credentials to establish SMB connections to default administrative shares (C$, ADMIN$) [14, 15, 18]. Tools like PsExec and Cobalt Strike stage payload binaries remotely across SMB, install remote services, and execute code on neighboring target hosts [14, 18, 21].
+3. Destruction & Encryption Phase: High-Frequency Ransomware Encryption and Renaming (MITRE ATT&CK T1486) occurs when strains such as BlackCat, Ryuk, and Qilin traverse mapped network shares, systematically reading file contents, encrypting data blocks using AES or ChaCha20 algorithms, and renaming original files with unique extensions [8, 16, 21]. This activity manifests in SMB network logs as rapid bursts of open, write, overwrite, and rename operations [8].
+4. Exfiltration Phase: Data Exfiltration over Network Protocol Shares (MITRE ATT&CK T1567) involves staging and exfiltrating intellectual property [20, 22]. Attackers execute high-volume read requests across network shares, aggregate data locally using archiving utilities, and transmit the staging archives offsite via cloud synchronization tools like Rclone [20, 22].
+
+
+________________
+
+
+Alert Engineering and Detection Logic
+To operationalize threat analytics against file-server access anomalies, security operations teams require production-ready rules expressed in standardized detection formats. The following rules provide detection coverage across the primary stages of file-server exploitation.
+Rule 1: Administrative Share Access and Remote Payload Dropping
+This detection monitors network-level file creation or modification events targeting administrative shares (C$, ADMIN$) involving executable binary extensions.
+Sigma Rule Definition
+title: Network SMB Remote Payload Creation on Administrative Shares
+id: 9b2d8e41-0f31-4c12-b94f-18e3fa912001
+status: test
+description: Detects network-level creation or modification of executable files on administrative network shares (C$, ADMIN$) via Zeek SMB telemetry.
+references:
+  - https://attack.mitre.org/techniques/T1021/002/
+author: Cyber Detection Engineering Team
+date: 2026/03/30
+tags:
+  - attack.lateral_movement
+  - attack.t1021.002
+logsource:
+  category: network
+  product: zeek
+  service: smb_files
+detection:
+  selection_share:
+    path|contains:
+      - '\C$'
+      - '\ADMIN$'
+  selection_action:
+    action:
+      - 'SMB::FILE_CREATE'
+      - 'SMB::FILE_WRITE'
+      - 'SMB::FILE_OPEN'
+  selection_extension:
+    name|endswith:
+      - '.exe'
+      - '.dll'
+      - '.bat'
+      - '.ps1'
+      - '.vbs'
+      - '.sys'
+  condition: selection_share and selection_action and selection_extension
+falsepositives:
+  - Authorized software deployment solutions (e.g., Microsoft Intune, SCCM) executing from privileged service accounts.
+level: high
+Suricata Signature Definition
+alert smb $HOME_NET any -> $HOME_NET 445 (msg:"NET-POLICY SMB Access to Admin Share C$ or ADMIN$"; flow:to_server,established; smb.share; content:"|5C 5C|"; content:"|5C|"; pcre:"/\\(C\$|ADMIN\$)$/i"; classtype:policy-violation; sid:2026001; rev:1;)
+Rule 2: Automated Network Share Enumeration (ShareFinder Pattern)
+This detection identifies single host source IP addresses attempting connections across multiple unique destination IP addresses targeting default shares within a ten-second time window.
+Sigma Correlation Rule Definition
+title: High-Velocity SMB Network Share Enumeration
+id: 4a12c8e2-9d34-4b51-872f-51920acde102
+status: experimental
+description: Detects a single host attempting connections to multiple SMB shares across distinct destination IPs within a short timeframe, characteristic of ShareFinder discovery.
+references:
+  - https://thedfirreport.com/2023/01/23/sharefinder-how-threat-actors-discover-file-shares/
+author: Threat Analytics Research Group
+date: 2026/03/30
+tags:
+  - attack.discovery
+  - attack.t1135
+logsource:
+  category: network
+  product: zeek
+  service: smb_mapping
+detection:
+  selection:
+    path|contains:
+      - 'IPC$'
+      - 'C$'
+      - 'ADMIN$'
+  condition: selection
+correlation:
+  type: value_count
+  rules:
+    - selection
+  group-by:
+    - id.orig_h
+  distinct:
+    - id.resp_h
+  timespan: 10s
+  operator: '>='
+  count: 15
+falsepositives:
+  - Enterprise vulnerability management scanners and Active Directory domain controller sync tasks.
+level: medium
+Rule 3: Rapid File Renaming and Mass Overwriting (Ransomware Activity)
+This detection tracks abnormal volumes of file rename operations (SMB::FILE_RENAME) or the creation of known ransomware extensions and ransom notes within a one-minute window.
+Sigma Rule Definition
+title: Potential Ransomware File Renaming and Overwriting Activity via SMB
+id: e7189b02-5c4d-4e92-a1b8-6701fc3e9912
+status: test
+description: Detects high-frequency file renaming operations or creation of common ransomware extensions over SMB network shares.
+references:
+  - https://attack.mitre.org/techniques/T1486/
+author: Detection Engineering Team
+date: 2026/03/30
+tags:
+  - attack.impact
+  - attack.t1486
+logsource:
+  category: network
+  product: zeek
+  service: smb_files
+detection:
+  selection_rename:
+    action: 'SMB::FILE_RENAME'
+  selection_ransom_ext:
+    name|endswith:
+      - '.locked'
+      - '.crypto'
+      - '.enc'
+      - '.ryuk'
+      - '.qilin'
+      - '.lockbit'
+      - '.README'
+      - 'DECRYPT_INFORMATION.txt'
+  condition: selection_rename or selection_ransom_ext
+correlation:
+  type: event_count
+  rules:
+    - selection_rename
+  group-by:
+    - id.orig_h
+    - id.resp_h
+  timespan: 1m
+  operator: '>='
+  count: 50
+falsepositives:
+  - Batch file archiving utilities and database compression operations.
+level: critical
+Rule 4: Anomalous Mass Data Read/Exfiltration over SMB/NFS
+This detection monitors high-volume file read actions (SMB::FILE_READ) originating from a single source host directed at a file server within a five-minute evaluation window.
+Sigma Rule Definition
+title: Excessive Volume of SMB Data Read Requests (Potential Exfiltration)
+id: c382a101-1b89-4b20-9411-8890fae12044
+status: experimental
+description: Identifies an unusually high volume of read operations over network file shares originating from a single host within a 5-minute window.
+references:
+  - https://attack.mitre.org/techniques/T1567/
+author: Cyber Threat Intelligence Unit
+date: 2026/03/30
+tags:
+  - attack.exfiltration
+  - attack.t1567
+logsource:
+  category: network
+  product: zeek
+  service: smb_files
+detection:
+  selection:
+    action: 'SMB::FILE_READ'
+  condition: selection
+correlation:
+  type: event_count
+  rules:
+    - selection
+  group-by:
+    - id.orig_h
+    - id.resp_h
+  timespan: 5m
+  operator: '>='
+  count: 500
+falsepositives:
+  - Centralized enterprise backup software agents pulling scheduled volume backups.
+level: high
+
+________________
+
+
+Operationalization, Baseline Tuning, and Noise Mitigation
+Statistical Baselining and Contextual Filtering
+Deploying high-sensitivity network capture rules without baseline tuning introduces operational friction due to false positive alerts generated by administrative tools, vulnerability scanners, and automated backups [3, 19]. Establishing dynamic baseline profiles aligned with enterprise network zones mitigates alerting noise.
+
+
+Statistical baselining strategies evaluate raw network telemetry through a sequence of contextual filters before generating alerts:
+
+
+* Ingested Raw Telemetry: Streaming SMB and NFS log events are captured and fed into the processing engine [1, 2].
+* Baseline Filtering Layer: Events are cross-matched against dynamic exclusion lists, suppressing alerts from known vulnerability scanners (such as Nessus or Qualys), SCCM distribution systems, and enterprise backup agents [3, 19].
+* Contextual Scoring Layer: Retained events receive weighted scores based on temporal context (such as off-hours access) and network segmentation (such as connections originating from untrusted Wi-Fi subnets).
+* SIEM Alert Dispatch: Events exceeding the dynamic threshold propagate to the SIEM console and initiate automated SOAR workflows [4, 7].
+
+
+Whitelisting strategies must strictly pair specific source IP ranges with authorized service account credentials. Vulnerability management appliances performing share audits should be filtered based on static IP host definitions and dedicated scanning account tokens. Similarly, scheduled enterprise backup solutions (such as Veeam or Commvault) issuing high-frequency read requests should be constrained to defined backup windows [3]. Contextual weighting enhances alert accuracy by evaluating temporal and network segment attributes. A high-volume SMB share access request initiated from an IT management subnet during business hours may generate a low-severity ticket, whereas identical access initiated from an untrusted guest Wi-Fi subnet outside standard business hours automatically escalates to a high-severity alert, triggering immediate automated quarantine protocols.
+Triaging Framework and Incident Response Orchestration
+To streamline SOC triage workflows, alerts generated by network packet capture rules should be correlated with corresponding host logs within unified SIEM dashboards [4, 7]. Cross-referencing network events with endpoint events confirms attack intent and eliminates benign network anomalies [4, 14].
+
+
+Alert Metric & Pattern
+	Primary Network Telemetry (Zeek/Suricata)
+	Correlated Endpoint Telemetry (Windows/Sysmon)
+	Recommended SOAR Response Playbook
+	Administrative Share Drop (C$, ADMIN$)
+	smb_files.log (path: C$, action: FILE_CREATE)
+	Event ID 5145 (Access Mask 0x2), Sysmon Event ID 11 (FileCreate)
+	Isolate target host via EDR agent; revoke active Kerberos user session.
+	Automated Share Discovery
+	smb_mapping.log (>15 distinct targets in 10s)
+	Event ID 4688 (net.exe view, PowerShell Get-SmbShare)
+	Flag source host IP for active hunting; review process creation ancestry.
+	Mass File Renaming / Encrypt
+	smb_files.log (>50 renames/min)
+	Event ID 4663 (Write/Delete Access), High Disk I/O
+	Isolate source host from network; kill encrypting process via EDR.
+	Large Read / Exfiltration
+	smb_files.log (>500 reads in 5m)
+	Sysmon Event ID 1 (rclone.exe, 7z.exe, winscp.exe)
+	Block outbound egress IP on perimeter firewall for source host.
+	
+
+________________
+
+
+Conclusions
+Integrating a passive network packet capture pipeline into an enterprise security monitoring architecture provides continuous visibility into network-level asset interactions [1, 2]. Decoupling high-volume packet capture via kernel load-balancing (SO_REUSEPORT) and Kafka message buffering ensures reliable telemetry delivery during peak load conditions [2, 3].
+
+
+Normalizing network log outputs into schema standards—such as the Elastic Common Schema (ECS) and OCSF Class 1001 (File System Activity)—enables precise correlation between network-level protocol operations and host-level execution telemetry [1, 7, 11]. Operationalizing file-server access analytics using targeted Sigma and Suricata rules allows security operation centers to detect early-stage share reconnaissance, lateral movement, ransomware propagation, and data exfiltration before severe operational impact occurs [8, 18, 19, 20].
+Sources
+1. Zeek Integration for Elastic
+2. Using Zeek with AWS Traffic Mirroring and Kafka
+3. Kafka-based ingest pipelines with Elastic OpenTelemetry
+4. 3 Ways to Integrate Zeek With Your Security Stack
+5. Elastic Common Schema (ECS) ingest pipeline for Zeek network traffic analyzer - GitHub
+6. The key components of CISA's Malcolm on Amazon EKS | AWS Public Sector Blog
+7. Open Cybersecurity Schema Framework (OCSF) Common Data Model in Datadog
+8. Empowering Ransomware Detection: Leveraging Splunk and Sigma Rules for Enhanced Security. - NORMA@NCI Library
+9. SMB Logs (plus DCE-RPC, Kerberos, NTLM) - Zeek Documentation
+10. Network Packet Capture Integration - Elastic
+11. File System Activity - Query Docs
+12. Patterns for consuming custom log sources in Amazon Security Lake
+13. FileActivity in clawdstrike_ocsf::classes::file_activity - Rust - Docs.rs
+14. SIGMA-detection-rules/README.md at main - GitHub
+15. SMB Create Remote File Admin Share | Detection.FYI
+16. Suspicious Registry Key Added: LanmanServer Parameters - Detection.FYI
+17. What are Sigma rules? | ManageEngine Log360
+18. A Bazar start: How one hospital thwarted a Ryuk ransomware outbreak - Zscaler
+19. ShareFinder: How Threat Actors Discover File Shares - The DFIR Report
+20. Making Waves: TTP Intelligence Highlights in April - Tidal Cyber
+21. The Quiet Weapon: Inside a Qilin Ransomware Attack - Thrive NextGen
+22. Gentlemen Ransomware Uses Double Extortion and GPO Abuse - SOC Prime

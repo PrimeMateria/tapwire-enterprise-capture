@@ -1,0 +1,26 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{wireshark\_model\_integration\_sound}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Wireshark.Wireshark.Capture.isCaptureLimitsValid (Wireshark.Wireshark.Capture.defaultCaptureLimits) \&\& (Wireshark.Wireshark.PcapNg.isValidBlock (Wireshark.Wireshark.PcapNg.alignedEnhancedPacketBlock) \&\& (Wireshark.Wireshark.Dissector.isValidFieldInstance (Wireshark.Wireshark.Dissector.tcpPortField) \&\& Wireshark.Wireshark.Filter.evaluateFilter (Wireshark.Wireshark.Filter.tcpPortFilter)))) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{wireshark\_rejects\_malformed\_block}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(Wireshark.Wireshark.PcapNg.isValidBlock (Wireshark.Wireshark.PcapNg.misalignedEnhancedPacketBlock) = false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{wireshark\_section\_magic\_is\_stable}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Nat.beq (Wireshark.Wireshark.Capture.pcapngSectionMagic) (168627466)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{enterprise\_capture\_and\_alert\_integration\_is\_sound}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(((Wireshark.Enterprise.CapturePipeline.isPipelineWellFormed (Wireshark.Enterprise.CapturePipeline.defaultEnterprisePipeline) \&\& Wireshark.Enterprise.Normalization.isKnownFileActivityUid (Wireshark.Enterprise.Normalization.fileSystemActivityTypeUid (Wireshark.Enterprise.Normalization.fileRenamingActivityId))) \&\& (Wireshark.Enterprise.FileServerThreats.matchesRemotePayloadRule (Wireshark.Enterprise.FileServerThreats.administrativePayloadEvent) \&\& Wireshark.Enterprise.AlertOperations.shouldDispatchAlert (Wireshark.Enterprise.AlertOperations.highRiskOffHoursContext))) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{enterprise\_and\_wireshark\_models\_are\_jointly\_consistent}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(((Wireshark.Wireshark.Capture.isCaptureLimitsValid (Wireshark.Wireshark.Capture.defaultCaptureLimits) \&\& Wireshark.Enterprise.CapturePipeline.hasDecoupledTransport (Wireshark.Enterprise.CapturePipeline.defaultEnterprisePipeline)) \&\& (Wireshark.Enterprise.FileServerThreats.matchesRansomwareRule (Wireshark.Enterprise.FileServerThreats.ransomwareEvent) \&\& (!Wireshark.Enterprise.AlertOperations.shouldDispatchAlert (Wireshark.Enterprise.AlertOperations.scannerContext)))) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\end{document}
