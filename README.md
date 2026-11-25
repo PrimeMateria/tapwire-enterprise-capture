@@ -1,4 +1,4 @@
-# Tapwire & Enterprise Capture — LexLean Formal Verification Suite
+# Tapwire Enterprise Capture — Formal Verification Suite (LexLean)
 
 [![Lean 4](https://img.shields.io/badge/Lean_4-v4.32.2-blue.svg)](https://leanprover.github.io/)
 [![LexLean](https://img.shields.io/badge/LexLean-Language_1.0-green.svg)](https://github.com/)
@@ -8,7 +8,7 @@
 [![PrismPM Release](https://img.shields.io/badge/Release-79af3626...-blueviolet.svg)](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/release/build/79af3626858c67b10dad330a8e0a4ece40b728d9cde4072af3c9fe34da4a92b3)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-Pre--Commit%20%2B%20GHA-success.svg)](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/.github/workflows/verify-test.yml)
 
-Formal specification, interactive theorem verification, enterprise network security pipeline integration, automated 9-suite verification harness, and CI/CD pre-commit enforcement for the Tapwire rewrite subsystem. Authored in **LexLean** with full **Lean 4 kernel** formal attestation and published into production using **PrismPM**.
+Formal specification, interactive theorem verification, enterprise network security pipeline integration, automated 9-suite verification harness, and CI/CD pre-commit enforcement for the Tapwire subsystem. Authored in **LexLean** with full **Lean 4 kernel** formal attestation and published into production using **PrismPM**.
 
 - **Subsystem Target**: [`/run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production)
 - **Reference Pattern**: [`/run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/kuramoto-prism`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/kuramoto-prism)
