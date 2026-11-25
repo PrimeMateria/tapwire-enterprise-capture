@@ -1,4 +1,4 @@
-# Wireshark & Enterprise Capture — LexLean Formal Verification Suite
+# Tapwire & Enterprise Capture — LexLean Formal Verification Suite
 
 [![Lean 4](https://img.shields.io/badge/Lean_4-v4.32.2-blue.svg)](https://leanprover.github.io/)
 [![LexLean](https://img.shields.io/badge/LexLean-Language_1.0-green.svg)](https://github.com/)
@@ -8,7 +8,7 @@
 [![PrismPM Release](https://img.shields.io/badge/Release-79af3626...-blueviolet.svg)](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/release/build/79af3626858c67b10dad330a8e0a4ece40b728d9cde4072af3c9fe34da4a92b3)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-Pre--Commit%20%2B%20GHA-success.svg)](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/.github/workflows/verify-test.yml)
 
-Formal specification, interactive theorem verification, enterprise network security pipeline integration, automated 9-suite verification harness, and CI/CD pre-commit enforcement for the Wireshark rewrite subsystem. Authored in **LexLean** with full **Lean 4 kernel** formal attestation and published into production using **PrismPM**.
+Formal specification, interactive theorem verification, enterprise network security pipeline integration, automated 9-suite verification harness, and CI/CD pre-commit enforcement for the Tapwire rewrite subsystem. Authored in **LexLean** with full **Lean 4 kernel** formal attestation and published into production using **PrismPM**.
 
 - **Subsystem Target**: [`/run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production)
 - **Reference Pattern**: [`/run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/kuramoto-prism`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/kuramoto-prism)
@@ -27,11 +27,11 @@ Formal specification, interactive theorem verification, enterprise network secur
 
 ## 1. Executive Summary
 
-The **Wireshark & Enterprise Capture LexLean Subsystem** provides a closed-lexicon, kernel-verified formal specification of packet capture foundations, block alignment bounds, protocol dissector hierarchies, display filter AST evaluations, and enterprise-grade threat analytics.
+The **Tapwire & Enterprise Capture LexLean Subsystem** provides a closed-lexicon, kernel-verified formal specification of packet capture foundations, block alignment bounds, protocol dissector hierarchies, display filter AST evaluations, and enterprise-grade threat analytics.
 
 Created as a formal alternative to the 495 MB C/C++ Wireshark implementation, this project unifies bounded protocol mechanics with the enterprise security requirements from [`Network Capture and Alert Planning.txt`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/Network%20Capture%20and%20Alert%20Planning.txt) under the rigorous PRISM architecture:
 
-1. **100% Lean 4 Kernel Attestation**: 14 formal modules (5 Wireshark protocol modules + 5 Enterprise capture/threat modules + 1 Joint Integration module + 3 PRISM foundation facets) verified by the Lean 4 kernel with **0 errors, 0 sorries, and 0 dynamic tactic axioms**.
+1. **100% Lean 4 Kernel Attestation**: 14 formal modules (5 Tapwire protocol modules + 5 Enterprise capture/threat modules + 1 Joint Integration module + 3 PRISM foundation facets) verified by the Lean 4 kernel with **0 errors, 0 sorries, and 0 dynamic tactic axioms**.
 2. **Formal Protocol Model**:
    - **Capture Bounds**: Enforces snaplen constraints ($1 \dots 262144$), link type ranges, and magic header signatures (`PCAP: 0xa1b2c3d4`, `PCAPNG: 0x0a0d0d0a`).
    - **PcapNg Alignment**: Verifies 32-bit boundary alignment, total block length constraints, and section/interface/packet block validators.
