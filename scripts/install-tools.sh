@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${SCRIPT_DIR}"
 
 echo "========================================================================"
-echo "  Wireshark LexLean CI Tool Bootstrap & SHA-256 Integrity Verifier"
+echo "  Tapwire LexLean CI Tool Bootstrap & SHA-256 Integrity Verifier"
 echo "========================================================================"
 
 BIN_DIR="${HOME}/.local/bin"

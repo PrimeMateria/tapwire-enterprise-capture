@@ -1,0 +1,30 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{pipeline\_and\_normalization\_are\_coherent}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Tapwire.Enterprise.CapturePipeline.isPipelineWellFormed (Tapwire.Enterprise.CapturePipeline.defaultEnterprisePipeline) \&\& (Tapwire.Enterprise.Normalization.hasCanonicalNetworkEndpoints (Tapwire.Enterprise.Normalization.defaultEcsFileEvent) \&\& Tapwire.Enterprise.Normalization.hasCanonicalFileFields (Tapwire.Enterprise.Normalization.defaultEcsFileEvent))) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{normalization\_and\_detection\_are\_coherent}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Tapwire.Enterprise.Normalization.isKnownFileActivityUid (Tapwire.Enterprise.Normalization.fileSystemActivityTypeUid (Tapwire.Enterprise.Normalization.fileRenamingActivityId)) \&\& Tapwire.Enterprise.FileServerThreats.matchesRansomwareRule (Tapwire.Enterprise.FileServerThreats.ransomwareEvent)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{detection\_and\_alert\_are\_coherent}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Tapwire.Enterprise.FileServerThreats.matchesRemotePayloadRule (Tapwire.Enterprise.FileServerThreats.administrativePayloadEvent) \&\& Tapwire.Enterprise.AlertOperations.shouldDispatchAlert (Tapwire.Enterprise.AlertOperations.highRiskOffHoursContext)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{baseline\_suppression\_is\_preserved}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(((!Tapwire.Enterprise.AlertOperations.shouldDispatchAlert (Tapwire.Enterprise.AlertOperations.scannerContext)) \&\& (!Tapwire.Enterprise.AlertOperations.shouldDispatchAlert (Tapwire.Enterprise.AlertOperations.businessHoursContext))) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{critical\_alert\_selects\_host\_isolation}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(Tapwire.Enterprise.AlertOperations.responseCode (Tapwire.Enterprise.AlertOperations.responseForLevel (Tapwire.Enterprise.AlertOperations.alertLevel (Tapwire.Enterprise.AlertOperations.highRiskOffHoursContext))) = 3)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{enterprise\_integration\_is\_sound}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(((Tapwire.Enterprise.CapturePipeline.isPipelineWellFormed (Tapwire.Enterprise.CapturePipeline.defaultEnterprisePipeline) \&\& (Tapwire.Enterprise.Normalization.hasCanonicalNetworkEndpoints (Tapwire.Enterprise.Normalization.defaultOcsfRenameEvent) \&\& Tapwire.Enterprise.Normalization.isKnownFileActivityUid ((Tapwire.Enterprise.Normalization.defaultOcsfRenameEvent).typeUid))) \&\& ((Tapwire.Enterprise.FileServerThreats.matchesRemotePayloadRule (Tapwire.Enterprise.FileServerThreats.administrativePayloadEvent) \&\& Tapwire.Enterprise.FileServerThreats.matchesShareEnumerationRule (Tapwire.Enterprise.FileServerThreats.shareFinderEvent)) \&\& (Tapwire.Enterprise.FileServerThreats.matchesRansomwareRule (Tapwire.Enterprise.FileServerThreats.ransomwareEvent) \&\& Tapwire.Enterprise.FileServerThreats.matchesExfiltrationRule (Tapwire.Enterprise.FileServerThreats.exfiltrationEvent)))) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\end{document}

@@ -1,9 +1,9 @@
 spec = "lexlean/project/1"
-name = "wireshark-lexlean"
+name = "tapwire-lexlean"
 language = "1.2"
-module_prefix = "Wireshark"
+module_prefix = "Tapwire"
 source_roots = ["src"]
-entrypoints = ["src/Enterprise/AlertOperations.lex.tex", "src/Enterprise/CapturePipeline.lex.tex", "src/Enterprise/FileServerThreats.lex.tex", "src/Enterprise/Invariants.lex.tex", "src/Enterprise/Normalization.lex.tex", "src/Foundation/Arch.lex.tex", "src/Foundation/Qual.lex.tex", "src/Foundation/Sec.lex.tex", "src/Main.lex.tex", "src/Wireshark/Capture.lex.tex", "src/Wireshark/Dissector.lex.tex", "src/Wireshark/Filter.lex.tex", "src/Wireshark/Invariants.lex.tex", "src/Wireshark/PcapNg.lex.tex"]
+entrypoints = ["src/Enterprise/AlertOperations.lex.tex", "src/Enterprise/CapturePipeline.lex.tex", "src/Enterprise/FileServerThreats.lex.tex", "src/Enterprise/Invariants.lex.tex", "src/Enterprise/Normalization.lex.tex", "src/Foundation/Arch.lex.tex", "src/Foundation/Qual.lex.tex", "src/Foundation/Sec.lex.tex", "src/Main.lex.tex", "src/Tapwire/Capture.lex.tex", "src/Tapwire/Dissector.lex.tex", "src/Tapwire/Filter.lex.tex", "src/Tapwire/Invariants.lex.tex", "src/Tapwire/PcapNg.lex.tex"]
 build_root = ".lexlean"
 lockfile = "lexlean.lock"
 lean_workspace = "."
@@ -33,9 +33,9 @@ kind = "path"
 path = "language/prism.sec"
 
 [[lexicon_source]]
-package = "wireshark.titles"
+package = "tapwire.titles"
 kind = "path"
-path = "language/wireshark.titles"
+path = "language/tapwire.titles"
 
 [limits]
 max_file_bytes = 4194304

@@ -14,8 +14,8 @@
   columns=fullflexible
 }
 
-\title{ADR-0001: Integration of Enterprise Network Capture and Alert Planning into the LexLean Wireshark Rewrite}
-\author{Wireshark LexLean Rewrite Working Group}
+\title{ADR-0001: Integration of Enterprise Network Capture and Alert Planning into the LexLean Tapwire Rewrite}
+\author{Tapwire LexLean Rewrite Working Group}
 \date{2026-11-23}
 
 \begin{document}
@@ -23,7 +23,7 @@
 
 \begin{abstract}
 This decision record governs the integration of
-\texttt{Network Capture and Alert Planning.txt} into the LexLean 1.2 Wireshark rewrite located at
+\texttt{Network Capture and Alert Planning.txt} into the LexLean 1.2 Tapwire rewrite located at
 \texttt{/run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production}. The source document is a
 rich operational architecture narrative covering packet acquisition, passive sensors, Kafka
 buffering, schema normalization, file-server threat analytics, and SOAR response. This ADR decides
@@ -66,8 +66,8 @@ The implementation plan preceding this ADR is
         sorries and no dynamic tactic axioms.
   \item \textbf{Requirements traceability.} Each major planning area must map to named LexLean
         declarations and to a verification command.
-  \item \textbf{Additive integration.} Existing Wireshark modules and the original
-        \texttt{../wireshark} source tree remain unchanged.
+  \item \textbf{Additive integration.} Existing Tapwire modules and the original
+        \texttt{../tapwire} source tree remain unchanged.
   \item \textbf{Release reproducibility.} The complete expanded project must pass \texttt{prismpm
         check} and publish a new \texttt{prismpm build}.
 \end{enumerate}
@@ -75,7 +75,7 @@ The implementation plan preceding this ADR is
 \section{Decision}
 
 We add five new LexLean modules under \texttt{src/Enterprise/}, extend the top-level
-\texttt{Main} module, add five title entries to \texttt{language/wireshark.titles}, and extend the
+\texttt{Main} module, add five title entries to \texttt{language/tapwire.titles}, and extend the
 sorted \texttt{entrypoints} array in \texttt{lexlean.toml}. The source planning document remains an
 input artifact; it is not copied into the formal source and no external deployment is performed.
 
@@ -201,7 +201,7 @@ Recorded results after this integration:
         checkable formal objects rather than prose only.
   \item Threshold drift is visible in source: changing a documented count or window changes a
         theorem's meaning and requires re-verification.
-  \item The existing Wireshark suite and the new enterprise suite are jointly checked by
+  \item The existing Tapwire suite and the new enterprise suite are jointly checked by
         \texttt{Main}, giving a single project-wide attestation.
   \item PrismPM produces a fresh content-addressed release for the expanded project.
 \end{itemize}

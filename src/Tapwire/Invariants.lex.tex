@@ -1,0 +1,39 @@
+\begin{lexlean}{Tapwire.Invariants}
+\useglossary{lexlean.std.bool@1.2.0}
+\useglossary{lexlean.std.nat@1.2.0}
+\useglossary{tapwire.titles@1.0.0}
+\importmodule{Tapwire.Capture}
+\importmodule{Tapwire.PcapNg}
+\importmodule{Tapwire.Dissector}
+\importmodule{Tapwire.Filter}
+\title{Tapwire formal invariants}
+\begin{semanticmodule}
+theorem{
+  name: capture_limits_bound_packet_length,
+  parameters: [],
+  statement: (((project (Tapwire.Capture::defaultCaptureLimits) maxPacketLength) <=? (project (Tapwire.Capture::defaultCaptureLimits) snaplen)) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: pcapng_block_alignment_is_enforced,
+  parameters: [],
+  statement: (((Tapwire.PcapNg::isAlignedTo32BitBoundary (Tapwire.PcapNg::alignedEnhancedPacketBlock)) && (not (Tapwire.PcapNg::isAlignedTo32BitBoundary (Tapwire.PcapNg::misalignedEnhancedPacketBlock)))) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: dissector_fields_respect_parent_and_depth,
+  parameters: [],
+  statement: (((Tapwire.Dissector::isValidFieldInstance (Tapwire.Dissector::ipSourceField)) && (Tapwire.Dissector::isValidFieldInstance (Tapwire.Dissector::tcpPortField))) = true),
+  proof: reflexivity{}
+}
+
+theorem{
+  name: display_filter_is_bounded,
+  parameters: [],
+  statement: (((Tapwire.Filter::filterNodeCount (Tapwire.Filter::tcpPortFilter)) <=? 64) = true),
+  proof: reflexivity{}
+}
+\end{semanticmodule}
+\end{lexlean}

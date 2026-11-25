@@ -1,0 +1,22 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{capture\_limits\_bound\_packet\_length}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Nat.ble ((Tapwire.Tapwire.Capture.defaultCaptureLimits).maxPacketLength) ((Tapwire.Tapwire.Capture.defaultCaptureLimits).snaplen)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{pcapng\_block\_alignment\_is\_enforced}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Tapwire.Tapwire.PcapNg.isAlignedTo32BitBoundary (Tapwire.Tapwire.PcapNg.alignedEnhancedPacketBlock) \&\& (!Tapwire.Tapwire.PcapNg.isAlignedTo32BitBoundary (Tapwire.Tapwire.PcapNg.misalignedEnhancedPacketBlock))) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{dissector\_fields\_respect\_parent\_and\_depth}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Tapwire.Tapwire.Dissector.isValidFieldInstance (Tapwire.Tapwire.Dissector.ipSourceField) \&\& Tapwire.Tapwire.Dissector.isValidFieldInstance (Tapwire.Tapwire.Dissector.tcpPortField)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{display\_filter\_is\_bounded}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Nat.ble (Tapwire.Tapwire.Filter.filterNodeCount (Tapwire.Tapwire.Filter.tcpPortFilter)) (64)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\end{document}

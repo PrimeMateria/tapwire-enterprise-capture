@@ -14,27 +14,27 @@
   columns=fullflexible
 }
 
-\title{ADR-0002: Production-Grade Test Harness, Automated Reporting, and CI/CD Integration for the LexLean Wireshark Rewrite}
-\author{Wireshark LexLean Rewrite Working Group}
+\title{ADR-0002: Production-Grade Test Harness, Automated Reporting, and CI/CD Integration for the LexLean Tapwire Rewrite}
+\author{Tapwire LexLean Rewrite Working Group}
 \date{2026-11-23}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-This decision record proposes a production-grade verification harness for the LexLean Wireshark
+This decision record proposes a production-grade verification harness for the LexLean Tapwire
 rewrite at \texttt{/run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production}. The harness
 follows the operating pattern established in \texttt{kuramoto-prism}: one automated runner, nine
 fail-closed suites, generated Markdown and JSON reports, a local pre-commit gate, and a GitHub
 Actions workflow that publishes the human-readable report to the job summary. The suite content is
-adapted to the current project's Wireshark/pcapng/dissector/filter model and the enterprise capture
+adapted to the current project's Tapwire/pcapng/dissector/filter model and the enterprise capture
 and alert model governed by ADR-0001. No Kuramoto numerical invariants or stress claims are copied,
 and no formal source is changed by this decision.
 \end{abstract}
 
 \section{Context}
 
-ADR-0001 expanded the project to fourteen verified LexLean modules: five Wireshark modules, five
+ADR-0001 expanded the project to fourteen verified LexLean modules: five Tapwire modules, five
 enterprise capture/alert modules, three PRISM facet modules, and the top-level \texttt{Main} module.
 The project currently has a single manual verification script, \texttt{verify.sh}, which runs:
 
@@ -130,7 +130,7 @@ cannot diverge.
     \texttt{release/build/HASH/manifest.json} and
     \texttt{model.prism.json}. \\
 \texttt{TS-09}
-  & Wireshark/Enterprise Invariant Matrix \& Report Integrity
+  & Tapwire/Enterprise Invariant Matrix \& Report Integrity
   & Seven local sub-suites described below; all must pass and reports must agree. \\
 \bottomrule
 \end{tabularx}
@@ -154,7 +154,7 @@ PrismPM release identifier.
 \textbf{Sub-suite} & \textbf{Target} & \textbf{Evidence} \\
 \midrule
 \texttt{SUITE-W1}
-  & Wireshark core model
+  & Tapwire core model
   & Capture limits, pcap/pcapng magic values, 32-bit block alignment, dissector ordering/depth,
     filter evaluation, and cross-module rejection theorems. \\
 \texttt{SUITE-E1}
@@ -243,7 +243,7 @@ checks out the repository, sets up Python 3.11, installs the pinned Lean toolcha
 with SHA-256 verification, and executes \texttt{./run-tests.sh --ci}.
 
 The verification job always uploads \texttt{reports/} as artifact
-\texttt{wireshark-lexlean-reports} and always appends the latest Markdown report to the job summary.
+\texttt{tapwire-lexlean-reports} and always appends the latest Markdown report to the job summary.
 A non-zero runner exit fails the job. Branch protection requires this \texttt{verify} check before
 merge.
 
@@ -260,7 +260,7 @@ formal source, lockfiles, or configuration.
 \toprule
 \textbf{Current artifact} & \textbf{Harness coverage} \\
 \midrule
-\texttt{src/Wireshark/*.lex.tex}
+\texttt{src/Tapwire/*.lex.tex}
   & \texttt{TS-04}, \texttt{TS-05}, \texttt{SUITE-W1}. \\
 \texttt{src/Enterprise/CapturePipeline.lex.tex},
 \texttt{src/Enterprise/Normalization.lex.tex}
@@ -320,7 +320,7 @@ report prose. Legitimate model changes require an explicit baseline update in th
   \item Local commits and remote CI enforce the same formal and release gates.
   \item Report drift becomes a detectable fingerprint mismatch rather than unnoticed prose.
   \item The harness is project-specific: all counts and invariants come from the fourteen-module
-        Wireshark/enterprise model.
+        Tapwire/enterprise model.
 \end{itemize}
 
 \subsection{Negative and Mitigations}

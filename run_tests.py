@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Automated Test Runner & Formal Verification Report Generator for Wireshark LexLean Subsystem
+Automated Test Runner & Formal Verification Report Generator for Tapwire LexLean Subsystem
 Target: /run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production
 Governed by: ADR-0001, ADR-0002 / ADR-0029, and PrismPM Framework
 Reference Architecture: /run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/kuramoto-prism
@@ -232,12 +232,12 @@ def execute_suite_ts09_domain_invariants(decl_info, check_info, verify_info, rel
     """
     sub_suites = []
 
-    # SUITE-W1: Wireshark Core Protocol Model
+    # SUITE-W1: Tapwire Core Protocol Model
     t0 = time.perf_counter()
-    capture_file = SRC_DIR / "Wireshark/Capture.lex.tex"
-    pcapng_file = SRC_DIR / "Wireshark/PcapNg.lex.tex"
-    dissector_file = SRC_DIR / "Wireshark/Dissector.lex.tex"
-    filter_file = SRC_DIR / "Wireshark/Filter.lex.tex"
+    capture_file = SRC_DIR / "Tapwire/Capture.lex.tex"
+    pcapng_file = SRC_DIR / "Tapwire/PcapNg.lex.tex"
+    dissector_file = SRC_DIR / "Tapwire/Dissector.lex.tex"
+    filter_file = SRC_DIR / "Tapwire/Filter.lex.tex"
 
     w1_pass = False
     if all(p.exists() for p in [capture_file, pcapng_file, dissector_file, filter_file]):
@@ -255,7 +255,7 @@ def execute_suite_ts09_domain_invariants(decl_info, check_info, verify_info, rel
 
     sub_suites.append({
         "id": "SUITE-W1",
-        "name": "Wireshark Core Protocol Model Coverage",
+        "name": "Tapwire Core Protocol Model Coverage",
         "target": "Capture limits, 32-bit block boundary alignment, dissector tree depth (<=32), display filter AST bounds",
         "status": "PASS" if w1_pass else "FAIL",
         "duration": time.perf_counter() - t0,
@@ -334,8 +334,8 @@ def execute_suite_ts09_domain_invariants(decl_info, check_info, verify_info, rel
         m_text = main_file.read_text(encoding="utf-8")
         ei_text = ent_inv_file.read_text(encoding="utf-8")
         has_ent_sound = "enterprise_integration_is_sound" in ei_text
-        has_main_joint = "enterprise_and_wireshark_models_are_jointly_consistent" in m_text
-        has_wire_sound = "wireshark_model_integration_sound" in m_text
+        has_main_joint = "enterprise_and_tapwire_models_are_jointly_consistent" in m_text
+        has_wire_sound = "tapwire_model_integration_sound" in m_text
 
         x1_pass = has_ent_sound and has_main_joint and has_wire_sound
 
@@ -403,7 +403,7 @@ def generate_reports(data):
     # 2. Markdown Report
     status_badge = "✅ PASSED" if overall_status == "PASS" else "❌ FAILED"
     md_lines = [
-        "# Wireshark LexLean & PrismPM Verification Report",
+        "# Tapwire LexLean & PrismPM Verification Report",
         "",
         f"**Status**: {status_badge}  ",
         f"**Execution Timestamp**: `{iso_time}`  ",
@@ -448,24 +448,24 @@ def generate_reports(data):
         "",
         "---",
         "",
-        "## 3. Formally Verified Wireshark & Enterprise Modules",
+        "## 3. Formally Verified Tapwire & Enterprise Modules",
         "",
         "| Module | File | Certified Theorems & Scope | Result |",
         "| :--- | :--- | :--- | :--- |",
     ])
 
     modules_catalog = [
-        ("Wireshark.Capture", "src/Wireshark/Capture.lex.tex", "Snaplen limits, link types (1..300), classic pcap & pcapng magic values", "✅ PASS"),
-        ("Wireshark.PcapNg", "src/Wireshark/PcapNg.lex.tex", "32-bit block boundary alignment, Section Header Block, Interface & Enhanced Packet Blocks", "✅ PASS"),
-        ("Wireshark.Dissector", "src/Wireshark/Dissector.lex.tex", "ProtocolLayer ordering, dissector field registration, parent bounds, depth budget (<=32)", "✅ PASS"),
-        ("Wireshark.Filter", "src/Wireshark/Filter.lex.tex", "DisplayFilterExpr AST recursive evaluation, node count bounds (<=64), boolean logic", "✅ PASS"),
-        ("Wireshark.Invariants", "src/Wireshark/Invariants.lex.tex", "Joint cross-module packet capture, alignment, dissector depth, and filter invariants", "✅ PASS"),
+        ("Tapwire.Capture", "src/Tapwire/Capture.lex.tex", "Snaplen limits, link types (1..300), classic pcap & pcapng magic values", "✅ PASS"),
+        ("Tapwire.PcapNg", "src/Tapwire/PcapNg.lex.tex", "32-bit block boundary alignment, Section Header Block, Interface & Enhanced Packet Blocks", "✅ PASS"),
+        ("Tapwire.Dissector", "src/Tapwire/Dissector.lex.tex", "ProtocolLayer ordering, dissector field registration, parent bounds, depth budget (<=32)", "✅ PASS"),
+        ("Tapwire.Filter", "src/Tapwire/Filter.lex.tex", "DisplayFilterExpr AST recursive evaluation, node count bounds (<=64), boolean logic", "✅ PASS"),
+        ("Tapwire.Invariants", "src/Tapwire/Invariants.lex.tex", "Joint cross-module packet capture, alignment, dissector depth, and filter invariants", "✅ PASS"),
         ("Enterprise.CapturePipeline", "src/Enterprise/CapturePipeline.lex.tex", "4-tier pipeline ordering (Acquisition->Sensors->Transport->Storage), VXLAN/GENEVE tunnel stripping", "✅ PASS"),
         ("Enterprise.Normalization", "src/Enterprise/Normalization.lex.tex", "ECS, UDM, and OCSF schema identity: type_uid = class_uid * 100 + activity_id", "✅ PASS"),
         ("Enterprise.FileServerThreats", "src/Enterprise/FileServerThreats.lex.tex", "Rules 1-4 thresholds: Admin share payload, traversal (>=15/10s), ransomware (>=50/60s), exfiltration (>=500/300s)", "✅ PASS"),
         ("Enterprise.AlertOperations", "src/Enterprise/AlertOperations.lex.tex", "Scheduled suppression, contextual threat score threshold (>=85.0), host correlation, SOAR containment", "✅ PASS"),
         ("Enterprise.Invariants", "src/Enterprise/Invariants.lex.tex", "End-to-end enterprise integration soundness theorem linking pipeline, threat detection, and SOAR response", "✅ PASS"),
-        ("Main", "src/Main.lex.tex", "Top-level joint integration and packet rejection theorems uniting Wireshark and enterprise models", "✅ PASS"),
+        ("Main", "src/Main.lex.tex", "Top-level joint integration and packet rejection theorems uniting Tapwire and enterprise models", "✅ PASS"),
         ("Foundation.Arch", "src/Foundation/Arch.lex.tex", "ISO-42010 Architecture description model & component topology", "✅ PASS"),
         ("Foundation.Qual", "src/Foundation/Qual.lex.tex", "ISO-25010 Quality characteristics & verification metrics", "✅ PASS"),
         ("Foundation.Sec", "src/Foundation/Sec.lex.tex", "ISO-27005/ISO-27034 Security risk, threats, & controls", "✅ PASS"),
@@ -505,7 +505,7 @@ def generate_reports(data):
     md_lines.extend([
         "",
         "> [!NOTE]",
-        "> The Wireshark and Enterprise Network Capture model validates 52 certified reflexivity theorems across 14 modules with pure kernel reflexivity. All four enterprise file-server threat detection thresholds and OCSF type_uid formulas are formally certified with zero sorries.",
+        "> The Tapwire and Enterprise Network Capture model validates 52 certified reflexivity theorems across 14 modules with pure kernel reflexivity. All four enterprise file-server threat detection thresholds and OCSF type_uid formulas are formally certified with zero sorries.",
         "",
     ])
 
@@ -521,7 +521,7 @@ def generate_reports(data):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Wireshark LexLean Automated Test Runner")
+    parser = argparse.ArgumentParser(description="Tapwire LexLean Automated Test Runner")
     parser.add_argument("--ci", action="store_true", help="Run in CI mode (UTC timestamps, no ANSI colors, fail-closed)")
     parser.add_argument("--hook", action="store_true", help="Run in git pre-commit hook mode")
     parser.add_argument("--quiet", action="store_true", help="Run with reduced console output")
@@ -532,7 +532,7 @@ def main():
 
     if not args.quiet:
         print(f"{colors.BOLD}{colors.CYAN}======================================================================{colors.RESET}")
-        print(f"{colors.BOLD}{colors.CYAN}  Wireshark LexLean & PrismPM Verification Runner                   {colors.RESET}")
+        print(f"{colors.BOLD}{colors.CYAN}  Tapwire LexLean & PrismPM Verification Runner                   {colors.RESET}")
         print(f"{colors.BOLD}{colors.CYAN}======================================================================{colors.RESET}")
 
     now = datetime.now(timezone.utc)
@@ -877,10 +877,10 @@ def main():
         print(f"  Status: {'✅ PASS' if ts08_pass else '❌ FAIL'} ({ts08_duration:.3f}s)")
 
     # -------------------------------------------------------------------------
-    # TS-09: Wireshark/Enterprise Invariant Matrix & Report Integrity
+    # TS-09: Tapwire/Enterprise Invariant Matrix & Report Integrity
     # -------------------------------------------------------------------------
     if not args.quiet:
-        print(f"\n{colors.BOLD}[9/9] Suite TS-09: Wireshark & Enterprise Invariant Matrix & Report Integrity{colors.RESET}")
+        print(f"\n{colors.BOLD}[9/9] Suite TS-09: Tapwire & Enterprise Invariant Matrix & Report Integrity{colors.RESET}")
     ts09_sub_suites = execute_suite_ts09_domain_invariants(decl_info, results["lexlean"]["check"], results["lexlean"]["verify"], published_hash)
     ts09_pass = all(s["status"] == "PASS" for s in ts09_sub_suites)
     ts09_duration = sum(s["duration"] for s in ts09_sub_suites)
@@ -890,7 +890,7 @@ def main():
 
     results["suites"].append({
         "id": "TS-09",
-        "name": "Wireshark/Enterprise Invariant Matrix & Report Integrity",
+        "name": "Tapwire/Enterprise Invariant Matrix & Report Integrity",
         "target": "In-process sub-suites SUITE-W1 through SUITE-R1",
         "status": "PASS" if ts09_pass else "FAIL",
         "duration": ts09_duration,

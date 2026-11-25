@@ -1,0 +1,18 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\section*{Semantic declarations}
+\subsection*{\texttt{tapwire\_model\_integration\_sound}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Tapwire.Tapwire.Capture.isCaptureLimitsValid (Tapwire.Tapwire.Capture.defaultCaptureLimits) \&\& (Tapwire.Tapwire.PcapNg.isValidBlock (Tapwire.Tapwire.PcapNg.alignedEnhancedPacketBlock) \&\& (Tapwire.Tapwire.Dissector.isValidFieldInstance (Tapwire.Tapwire.Dissector.tcpPortField) \&\& Tapwire.Tapwire.Filter.evaluateFilter (Tapwire.Tapwire.Filter.tcpPortFilter)))) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{tapwire\_rejects\_malformed\_block}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{(Tapwire.Tapwire.PcapNg.isValidBlock (Tapwire.Tapwire.PcapNg.misalignedEnhancedPacketBlock) = false)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\subsection*{\texttt{tapwire\_section\_magic\_is\_stable}}
+\noindent Kind: \texttt{theorem}.\par
+\noindent Statement: \texttt{((Nat.beq (Tapwire.Tapwire.Capture.pcapngSectionMagic) (168627466)) = true)}.\par
+\noindent Axiom policy: \texttt{none}.\par
+\end{document}

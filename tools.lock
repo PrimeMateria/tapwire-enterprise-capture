@@ -1,4 +1,4 @@
-# Pinned toolchain versions and SHA-256 digests for Wireshark LexLean CI/CD
+# Pinned toolchain versions and SHA-256 digests for Tapwire LexLean CI/CD
 [tools.lean]
 version = "4.32.2"
 toolchain = "leanprover/lean4:v4.32.2"

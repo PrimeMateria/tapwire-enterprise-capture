@@ -77,10 +77,10 @@ manifest_sha256 = "d9b9663715d38c6d181becc8d433e3c3636b55d7ef97bd1f3d39688222925
 imports = ["lexlean.core@1.2.0", "lexlean.std.bool@1.2.0", "lexlean.std.nat@1.2.0", "prism.arch@1.0.0"]
 
 [[package]]
-id = "wireshark.titles"
+id = "tapwire.titles"
 version = "1.0.0"
 kind = "path"
-source = "language/wireshark.titles"
+source = "language/tapwire.titles"
 revision = "none"
 tree_sha256 = "95dab40bd10a0390b6cec52ed9a05fecd24b4e553382fd57b6e9a6285509b624"
 manifest_sha256 = "b4cf82c7c564cbb1b4970040c3b38f2dbdb49b23865545b0852a484aa42f8b20"

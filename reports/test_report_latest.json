@@ -1,8 +1,8 @@
 {
   "report_schema": "lexlean-test-report/1",
-  "timestamp": "20261124T185444Z",
-  "iso_time": "2026-11-24T18:54:44.569828+00:00",
-  "target_directory": "/run/media/multiplic/AGI/prismagi/mount/TOOLS/wireshark-enterprise-capture",
+  "timestamp": "20261125T003401Z",
+  "iso_time": "2026-11-25T00:34:01.239203+00:00",
+  "target_directory": "/run/media/multiplic/AGI/prismagi/mount/TOOLS/tapwire-enterprise-capture",
   "toolchain": {
     "pinned_toolchain": "leanprover/lean4:v4.32.2",
     "lean_version": "Lean (version 4.32.2, x86_64-unknown-linux-gnu, commit f3b06c705e6c85f5314019d5d3baab0fec5b580c, Release)",
@@ -30,7 +30,7 @@
   "lake_build": {
     "status": true,
     "stdout": "Nothing to build.",
-    "duration": 0.15994472199236043
+    "duration": 0.18165467598009855
   },
   "lexlean": {
     "check": {
@@ -38,23 +38,23 @@
       "stdout": "",
       "source_hash": "UNKNOWN",
       "semantic_hash": "UNKNOWN",
-      "duration": 0.004294692014809698
+      "duration": 0.0034099819895345718
     },
     "verify": {
       "status": false,
       "stdout": "",
       "modules_verified": 0,
       "attestation": "UNKNOWN",
-      "duration": 0.0033280109928455204
+      "duration": 0.003506326989736408
     }
   },
   "prismpm": {
-    "status": true,
-    "published_hash": "79af3626858c67b10dad330a8e0a4ece40b728d9cde4072af3c9fe34da4a92b3",
-    "check_stdout": "check passed (semantic ID: 82a79bd033b89dc60f05bd8f58518b2f5d77d6e10c7b839ae02296ab422611b2)",
-    "build_stdout": "build published: 79af3626858c67b10dad330a8e0a4ece40b728d9cde4072af3c9fe34da4a92b3",
-    "release_path": "/run/media/multiplic/AGI/prismagi/mount/TOOLS/wireshark-enterprise-capture/release/build/79af3626858c67b10dad330a8e0a4ece40b728d9cde4072af3c9fe34da4a92b3",
-    "duration": 6.515843000001041
+    "status": false,
+    "published_hash": "UNKNOWN",
+    "check_stdout": "",
+    "build_stdout": "",
+    "release_path": "/run/media/multiplic/AGI/prismagi/mount/TOOLS/tapwire-enterprise-capture/release/build/UNKNOWN",
+    "duration": 5.366690974013181
   },
   "formal_audit": {
     "files_count": 14,
@@ -72,55 +72,55 @@
       "Foundation.Qual": 1,
       "Foundation.Sec": 1,
       "Main": 5,
-      "Wireshark.Capture": 3,
-      "Wireshark.Dissector": 4,
-      "Wireshark.Filter": 3,
-      "Wireshark.Invariants": 4,
-      "Wireshark.PcapNg": 2
+      "Tapwire.Capture": 3,
+      "Tapwire.Dissector": 4,
+      "Tapwire.Filter": 3,
+      "Tapwire.Invariants": 4,
+      "Tapwire.PcapNg": 2
     }
   },
   "domain_invariants": {
     "SUITE-W1": {
       "id": "SUITE-W1",
-      "name": "Wireshark Core Protocol Model Coverage",
+      "name": "Tapwire Core Protocol Model Coverage",
       "target": "Capture limits, 32-bit block boundary alignment, dissector tree depth (<=32), display filter AST bounds",
       "status": "PASS",
-      "duration": 0.0002390950103290379
+      "duration": 0.0003201320068910718
     },
     "SUITE-E1": {
       "id": "SUITE-E1",
       "name": "Capture Pipeline & Schema Normalization",
       "target": "Four-tier pipeline ordering, VXLAN/GENEVE tunnel stripping, OCSF identity formula (type_uid = class_uid * 100 + activity_id)",
       "status": "PASS",
-      "duration": 0.00010771799134090543
+      "duration": 0.00011518498649820685
     },
     "SUITE-E2": {
       "id": "SUITE-E2",
       "name": "File-Server Threat Detection Rules & Documented Thresholds",
       "target": "Rule 1 Admin share executable, Rule 2 traversal (>=15/10s), Rule 3 ransomware (>=50/60s), Rule 4 exfiltration (>=500/300s)",
       "status": "PASS",
-      "duration": 9.606900857761502e-05
+      "duration": 6.288100848905742e-05
     },
     "SUITE-E3": {
       "id": "SUITE-E3",
       "name": "Alert Operations, Threat Scoring & SOAR Response",
       "target": "Baseline suppression, critical threshold (>=80.0), host correlation, automated SOAR host isolation response",
       "status": "PASS",
-      "duration": 5.092300125397742e-05
+      "duration": 4.985497798770666e-05
     },
     "SUITE-X1": {
       "id": "SUITE-X1",
       "name": "Cross-Module & Top-Level Joint Integration",
       "target": "Enterprise.Invariants joint soundness and Main top-level joint consistency theorems",
       "status": "PASS",
-      "duration": 6.602797657251358e-05
+      "duration": 6.980198668316007e-05
     },
     "SUITE-F1": {
       "id": "SUITE-F1",
       "name": "PRISM Foundation Architecture, Quality & Security Facets",
       "target": "ISO-42010 Architecture (Arch), ISO-25010 Quality (Qual), ISO-27005 Security (Sec) facet declarations",
       "status": "PASS",
-      "duration": 0.00021747697610408068
+      "duration": 0.00022566798725165427
     },
     "SUITE-R1": {
       "id": "SUITE-R1",
@@ -136,70 +136,70 @@
       "name": "Toolchain Pin & Runtime Environment",
       "target": "lean, lake, lexlean, prismpm",
       "status": "FAIL",
-      "duration": 0.24669621599605307
+      "duration": 0.5390522969828453
     },
     {
       "id": "TS-02",
       "name": "Canonical Format & Lock Parity",
       "target": "lexlean fmt --all --check && lexlean lock --check",
       "status": "FAIL",
-      "duration": 0.007359162962529808
+      "duration": 0.007658014015760273
     },
     {
       "id": "TS-03",
       "name": "Lean Lake Host Build & Hygiene",
       "target": "lake build --allow-empty",
       "status": "PASS",
-      "duration": 0.15994472199236043
+      "duration": 0.18165467598009855
     },
     {
       "id": "TS-04",
       "name": "Semantic IR AST & Module Type Check",
       "target": "lexlean check --all",
       "status": "FAIL",
-      "duration": 0.004294692014809698
+      "duration": 0.0034099819895345718
     },
     {
       "id": "TS-05",
       "name": "Lean 4 Kernel Formal Verification & Attestation",
       "target": "lexlean verify --all",
       "status": "FAIL",
-      "duration": 0.0033280109928455204
+      "duration": 0.003506326989736408
     },
     {
       "id": "TS-06",
       "name": "Formal Declaration & Threshold Audit",
       "target": "14 modules, 52 theorems, 99 defs, 39 structs, 24 inductives",
       "status": "PASS",
-      "duration": 0.002948495006421581
+      "duration": 0.003372940991539508
     },
     {
       "id": "TS-07",
       "name": "Build & Attestation Artifact Audit",
       "target": ".lexlean/ verified attestation storage, locks, production request",
       "status": "FAIL",
-      "duration": 0.000106305000372231
+      "duration": 8.959099068306386e-05
     },
     {
       "id": "TS-08",
       "name": "PrismPM Model Framework Compilation & Production Release",
       "target": "prismpm check && prismpm build",
-      "status": "PASS",
-      "duration": 6.515843000001041
+      "status": "FAIL",
+      "duration": 5.366690974013181
     },
     {
       "id": "TS-09",
-      "name": "Wireshark/Enterprise Invariant Matrix & Report Integrity",
+      "name": "Tapwire/Enterprise Invariant Matrix & Report Integrity",
       "target": "In-process sub-suites SUITE-W1 through SUITE-R1",
       "status": "PASS",
-      "duration": 0.00177730996417813
+      "duration": 0.001843522953800857
     }
   ],
   "summary": {
     "total": 9,
-    "passed": 4,
-    "failed": 5,
+    "passed": 3,
+    "failed": 6,
     "status": "FAIL"
   },
-  "fingerprint": "bff589b8051e427c3bf4f3bbfeb8c66ac591ffab35a7c73debe95132b732d6fa"
+  "fingerprint": "4d37c2371ad9c16acc860734ca76e20c20db48784f3966f9e2ce531a5252f184"
 }

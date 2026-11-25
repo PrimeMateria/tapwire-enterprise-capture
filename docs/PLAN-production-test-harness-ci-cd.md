@@ -9,7 +9,7 @@
 
 ## 1. Objective
 
-Establish a production-grade, fail-closed verification harness for the LexLean Wireshark rewrite that:
+Establish a production-grade, fail-closed verification harness for the LexLean Tapwire rewrite that:
 
 1. wraps the existing `verify.sh` command surface with a single automated runner;
 2. emits both human-readable Markdown and machine-readable JSON reports on every run;
@@ -18,7 +18,7 @@ Establish a production-grade, fail-closed verification harness for the LexLean W
 5. blocks commits and pull requests on any verification regression;
 6. publishes the human-readable report into the GitHub Actions job summary.
 
-This is the same operating pattern used in `kuramoto-prism` (`run_tests.py`, `run-tests.sh`, `reports/`, `.githooks/pre-commit`, `install-hooks.sh`, and `.github/workflows/verify-test.yml`), but the suite content is adapted to this project's Wireshark/pcapng/dissector/filter and enterprise capture/alert formal model. No Kuramoto numerical invariants or scaling claims are copied.
+This is the same operating pattern used in `kuramoto-prism` (`run_tests.py`, `run-tests.sh`, `reports/`, `.githooks/pre-commit`, `install-hooks.sh`, and `.github/workflows/verify-test.yml`), but the suite content is adapted to this project's Tapwire/pcapng/dissector/filter and enterprise capture/alert formal model. No Kuramoto numerical invariants or scaling claims are copied.
 
 ## 2. Current baseline and scope
 
@@ -57,7 +57,7 @@ The harness implementation must not change formal source. The baseline it is exp
 - New formal theorems or changed thresholds from ADR-0001.
 - Kuramoto-style oscillator, delay, or order-parameter benchmarks.
 - Deployment of Zeek, Suricata, Kafka, Elasticsearch, OpenSearch, SIEM, or SOAR.
-- Claims that the harness proves equivalence with the Wireshark executable.
+- Claims that the harness proves equivalence with the Tapwire executable.
 
 ## 3. Harness architecture and suite catalog
 
@@ -95,7 +95,7 @@ production/
 | `TS-06` | Formal Declaration & Threshold Audit | Source scan over all 14 `src/**/*.lex.tex` files | Expected declaration families and counts match the frozen baseline; enterprise thresholds (15/10s, 50/60s, 500/300s, `class_uid*100+activity_id`) are present; forbidden tokens absent. LexLean kernel remains authoritative. |
 | `TS-07` | Build & Attestation Artifact Audit | `.lexlean/verified/`, `.lexlean/build/`, `lexlean.lock`, `lexlean.toml`, `prismpm.toml`, `production/request.json` | Required artifacts exist; semantic ID from `TS-04` equals the semantic ID reported by `prismpm check`; attestation is non-empty and stable on rerun. |
 | `TS-08` | PrismPM Model Compilation & Production Release | `prismpm check`, `prismpm build` | Both exit 0; published 64-hex hash parsed; `release/build/<hash>/manifest.json` and `release/build/<hash>/model.prism.json` exist. Note: this project's `build_root` is `release`, not `production/build`. |
-| `TS-09` | Wireshark/Enterprise Invariant Matrix & Report Integrity | In-process sub-suites `SUITE-W1`, `SUITE-E1`, `SUITE-E2`, `SUITE-E3`, `SUITE-X1`, `SUITE-F1`, `SUITE-R1` | All sub-suites pass; generated JSON and Markdown agree on suite count, status, hashes, and fingerprint. |
+| `TS-09` | Tapwire/Enterprise Invariant Matrix & Report Integrity | In-process sub-suites `SUITE-W1`, `SUITE-E1`, `SUITE-E2`, `SUITE-E3`, `SUITE-X1`, `SUITE-F1`, `SUITE-R1` | All sub-suites pass; generated JSON and Markdown agree on suite count, status, hashes, and fingerprint. |
 
 Every suite writes its command, exit code, duration, stdout, and stderr to `reports/logs/<suite>_<UTC>.log`. The runner returns exit 0 only when `summary.status == "PASS"`.
 
@@ -105,7 +105,7 @@ Unlike Kuramoto `TS-09`, this suite is not a numerical stress benchmark. It audi
 
 | Sub-suite | Target property | Evidence |
 | --- | --- | --- |
-| `SUITE-W1` | Wireshark core model coverage | Capture limits/magic values, pcapng block alignment, dissector ordering/depth, filter evaluation, rejection theorems in `src/Wireshark/*` and `src/Main.lex.tex`. |
+| `SUITE-W1` | Tapwire core model coverage | Capture limits/magic values, pcapng block alignment, dissector ordering/depth, filter evaluation, rejection theorems in `src/Tapwire/*` and `src/Main.lex.tex`. |
 | `SUITE-E1` | Capture pipeline and normalization | Four-tier ordering, VXLAN/GENEVE termination, worker balancing/buffering, schema field roles, OCSF `type_uid` formula. |
 | `SUITE-E2` | File-server threat thresholds | Rules 1–4 predicates and exact documented thresholds: admin share + executable extension; ≥15 distinct targets/10s; ≥50 events/60s; ≥500 events/300s. |
 | `SUITE-E3` | Alert operations | Baseline suppression, contextual score threshold, severity mapping, endpoint correlation, SOAR response selection. |
@@ -126,13 +126,13 @@ There is deliberately no "fast" mode that skips `TS-05` or `TS-08`. Caching may 
 
 | Current module(s) | Formal responsibility | Covering suite |
 | --- | --- | --- |
-| `Wireshark.Capture`, `Wireshark.PcapNg` | Capture limits, magic values, block alignment | `TS-04`, `TS-05`, `SUITE-W1` |
-| `Wireshark.Dissector`, `Wireshark.Filter` | Dissector tree/depth and display-filter evaluation | `TS-04`, `TS-05`, `SUITE-W1` |
-| `Wireshark.Invariants` | Cross-module Wireshark invariants | `SUITE-W1` |
+| `Tapwire.Capture`, `Tapwire.PcapNg` | Capture limits, magic values, block alignment | `TS-04`, `TS-05`, `SUITE-W1` |
+| `Tapwire.Dissector`, `Tapwire.Filter` | Dissector tree/depth and display-filter evaluation | `TS-04`, `TS-05`, `SUITE-W1` |
+| `Tapwire.Invariants` | Cross-module Tapwire invariants | `SUITE-W1` |
 | `Enterprise.CapturePipeline`, `Enterprise.Normalization` | Tier order, tunnel handling, schema/OCSF identities | `SUITE-E1` |
 | `Enterprise.FileServerThreats` | Four detection rules and thresholds | `SUITE-E2` |
 | `Enterprise.AlertOperations` | Suppression, scoring, severity, correlation, SOAR | `SUITE-E3` |
-| `Enterprise.Invariants`, `Main` | Joint enterprise + Wireshark integration | `SUITE-X1` |
+| `Enterprise.Invariants`, `Main` | Joint enterprise + Tapwire integration | `SUITE-X1` |
 | `Foundation.Arch`, `Foundation.Qual`, `Foundation.Sec` | PRISM architecture/quality/security facets | `SUITE-F1` |
 | Project config, lockfiles, build roots | Canonical serialization, attestation storage, release artifacts | `TS-02`, `TS-07`, `TS-08` |
 | Generated reports | Audit trail and documentation freshness | `SUITE-R1` |
@@ -235,7 +235,7 @@ This project currently has no `.git` directory, so the initialization branch is 
 
 ### 7.1 Workflow
 
-Create `.github/workflows/verify-test.yml` named **Wireshark LexLean Verification and CI Pipeline**.
+Create `.github/workflows/verify-test.yml` named **Tapwire LexLean Verification and CI Pipeline**.
 
 Triggers:
 
@@ -251,7 +251,7 @@ Required job `verify` on `ubuntu-latest`:
 3. Install Lean via `leanprover/lean4-action@v1` using `lean-toolchain`.
 4. Install pinned LexLean and PrismPM using `tools.lock` + `scripts/install-tools.sh`. The script must verify a SHA-256 digest for every downloaded CLI and fail if `TS-01` reports a version mismatch. The Kuramoto workflow's `# Placeholder or local copy if cached` step is explicitly not acceptable here.
 5. Run `./run-tests.sh --ci`.
-6. If always: upload `reports/` with `actions/upload-artifact@v4` as `wireshark-lexlean-reports`.
+6. If always: upload `reports/` with `actions/upload-artifact@v4` as `tapwire-lexlean-reports`.
 7. If always: append `reports/TEST_REPORT_LATEST.md` to `$GITHUB_STEP_SUMMARY`; if missing, append an explicit failure notice.
 8. Fail the job whenever the runner exits non-zero.
 
@@ -261,8 +261,8 @@ Branch protection must require the `verify` status check before merging to `main
 
 Add a `publish-reports` job with `needs: verify` that runs only on `push` to `main`:
 
-- re-download the `wireshark-lexlean-reports` artifact;
-- publish it as a GitHub Pages artifact or immutable release asset named `wireshark-lexlean-reports-<UTC>`;
+- re-download the `tapwire-lexlean-reports` artifact;
+- publish it as a GitHub Pages artifact or immutable release asset named `tapwire-lexlean-reports-<UTC>`;
 - never modify source, lockfiles, or formal modules.
 
 This is the CD extension beyond the reference repository's CI-only workflow.

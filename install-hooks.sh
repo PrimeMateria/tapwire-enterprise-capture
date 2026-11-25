@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${SCRIPT_DIR}"
 
 echo "========================================================================"
-echo "  Installing Wireshark LexLean Git Pre-Commit Hook"
+echo "  Installing Tapwire LexLean Git Pre-Commit Hook"
 echo "========================================================================"
 
 if [ ! -d ".git" ]; then
@@ -17,10 +17,10 @@ chmod +x .githooks/pre-commit
 git config core.hooksPath .githooks
 
 if ! git config user.name >/dev/null 2>&1; then
-  git config user.name "Wireshark LexLean Subsystem"
+  git config user.name "Tapwire LexLean Subsystem"
 fi
 if ! git config user.email >/dev/null 2>&1; then
-  git config user.email "wireshark-lexlean@multiplicity.internal"
+  git config user.email "tapwire-lexlean@multiplicity.internal"
 fi
 
 # Fallback copy

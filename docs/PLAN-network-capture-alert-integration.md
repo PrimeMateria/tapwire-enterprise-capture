@@ -9,7 +9,7 @@
 ## 1. Objective
 
 Integrate the modelable requirements of `Network Capture and Alert Planning.txt` into the existing
-LexLean 1.2 Wireshark rewrite as **new formal modules**, not as a copied document and not as an
+LexLean 1.2 Tapwire rewrite as **new formal modules**, not as a copied document and not as an
 operational deployment. The result remains a bounded, kernel-verified model in the style of
 `kuramoto-prism` and `o3de-prism`.
 
@@ -37,7 +37,7 @@ It does **not** claim to deploy, parse, or reproduce those external systems.
 | Threat lifecycle T1135/T1021.002/T1486/T1567 and Rules 1–4 | Share/action/extension predicates and thresholded correlation patterns | `src/Enterprise/FileServerThreats.lex.tex` |
 | Baseline filtering, contextual scoring, SIEM dispatch, triage/correlation table, SOAR playbooks | Exclusion, score threshold, alert level, endpoint correlation, response action | `src/Enterprise/AlertOperations.lex.tex` |
 | Cross-cutting consistency | Pipeline → normalization → detection → alert consistency | `src/Enterprise/Invariants.lex.tex` |
-| Existing Wireshark model | Top-level integration with pre-existing pcapng/dissector/filter suite | `src/Main.lex.tex` |
+| Existing Tapwire model | Top-level integration with pre-existing pcapng/dissector/filter suite | `src/Main.lex.tex` |
 
 ## 4. Implementation phases
 
@@ -47,7 +47,7 @@ It does **not** claim to deploy, parse, or reproduce those external systems.
    verification evidence.
 
 ### Phase 2 — Closed-lexicon additions
-1. Add title entries under `language/wireshark.titles/entries/` for every new module.
+1. Add title entries under `language/tapwire.titles/entries/` for every new module.
 2. Keep entry IDs equal to their file basenames, as required by LexLean lexicon validation.
 
 ### Phase 3 — LexLean modules
@@ -82,7 +82,7 @@ It does **not** claim to deploy, parse, or reproduce those external systems.
 - `lexlean.lock` is current.
 - `lexlean check --all` and `lexlean verify --all` pass with no sorries or dynamic axioms.
 - `prismpm check` and `prismpm build` publish a new release.
-- Existing Wireshark modules and the original `../wireshark` tree remain intact.
+- Existing Tapwire modules and the original `../tapwire` tree remain intact.
 - `README.md` and the ADR accurately state the new scope and hashes.
 
 ## 6. Non-goals

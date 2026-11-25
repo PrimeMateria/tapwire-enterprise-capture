@@ -12,7 +12,7 @@ Formal specification, interactive theorem verification, enterprise network secur
 
 - **Subsystem Target**: [`/run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production)
 - **Reference Pattern**: [`/run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/kuramoto-prism`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/kuramoto-prism)
-- **Original Empirical Subsystem**: [`/run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/wireshark`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/wireshark)
+- **Original Empirical Subsystem**: [`/run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/tapwire`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/tapwire)
 - **Governing Architecture Records**:
   - [ADR-0001: Network Capture and Alert Integration](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/docs/adr/adr-0001-network-capture-alert-integration.tex) (LaTeX Subsystem Record)
   - [ADR-0002: Production-Grade Test Harness and Automated Reporting](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/docs/adr/adr-0002-production-test-harness-ci-cd.tex) (LaTeX Subsystem Record)
@@ -29,7 +29,7 @@ Formal specification, interactive theorem verification, enterprise network secur
 
 The **Tapwire & Enterprise Capture LexLean Subsystem** provides a closed-lexicon, kernel-verified formal specification of packet capture foundations, block alignment bounds, protocol dissector hierarchies, display filter AST evaluations, and enterprise-grade threat analytics.
 
-Created as a formal alternative to the 495 MB C/C++ Wireshark implementation, this project unifies bounded protocol mechanics with the enterprise security requirements from [`Network Capture and Alert Planning.txt`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/Network%20Capture%20and%20Alert%20Planning.txt) under the rigorous PRISM architecture:
+Created as a formal alternative to the 495 MB C/C++ Tapwire implementation, this project unifies bounded protocol mechanics with the enterprise security requirements from [`Network Capture and Alert Planning.txt`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/Network%20Capture%20and%20Alert%20Planning.txt) under the rigorous PRISM architecture:
 
 1. **100% Lean 4 Kernel Attestation**: 14 formal modules (5 Tapwire protocol modules + 5 Enterprise capture/threat modules + 1 Joint Integration module + 3 PRISM foundation facets) verified by the Lean 4 kernel with **0 errors, 0 sorries, and 0 dynamic tactic axioms**.
 2. **Formal Protocol Model**:
@@ -96,23 +96,23 @@ The subsystem is in a fully verified, self-governing, and committed production s
 | **TS-06** | Formal Declaration & Threshold Audit | AST scan: 52 theorems, 99 defs, 39 structs, 24 inductives | ✅ PASS | 0.003s |
 | **TS-07** | Build & Attestation Artifact Audit | Inspect `.lexlean/`, `lexlean.lock`, `production/request.json` | ✅ PASS | 0.000s |
 | **TS-08** | PrismPM Release Compilation | `prismpm check` & `prismpm build` | ✅ PASS | 6.130s |
-| **TS-09** | Wireshark & Enterprise Invariant Matrix | In-process sub-suites `SUITE-W1` through `SUITE-R1` | ✅ PASS | 0.002s |
+| **TS-09** | Tapwire & Enterprise Invariant Matrix | In-process sub-suites `SUITE-W1` through `SUITE-R1` | ✅ PASS | 0.002s |
 
 ### 3.3 Formally Verified Module Ledger
 
 | Module | Source File | Formal Responsibility & Certified Properties | Result |
 | :--- | :--- | :--- | :---: |
-| `Wireshark.Capture` | [`src/Wireshark/Capture.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Wireshark/Capture.lex.tex) | Snaplen bounds ($1 \dots 262144$), link type validity, magic numbers (`0xa1b2c3d4`, `0x0a0d0d0a`). | ✅ PASS |
-| `Wireshark.PcapNg` | [`src/Wireshark/PcapNg.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Wireshark/PcapNg.lex.tex) | 32-bit block boundary alignment, Section Header Block, Interface & Enhanced Packet Blocks. | ✅ PASS |
-| `Wireshark.Dissector` | [`src/Wireshark/Dissector.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Wireshark/Dissector.lex.tex) | Protocol hierarchy, dissector field registry, parent bounds, recursion depth limit ($\le 32$). | ✅ PASS |
-| `Wireshark.Filter` | [`src/Wireshark/Filter.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Wireshark/Filter.lex.tex) | Display filter expression AST recursive evaluation, node count budget ($\le 64$), boolean logic. | ✅ PASS |
-| `Wireshark.Invariants` | [`src/Wireshark/Invariants.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Wireshark/Invariants.lex.tex) | Joint cross-module packet capture, alignment, dissector depth, and display filter invariants. | ✅ PASS |
+| `Tapwire.Capture` | [`src/Tapwire/Capture.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Tapwire/Capture.lex.tex) | Snaplen bounds ($1 \dots 262144$), link type validity, magic numbers (`0xa1b2c3d4`, `0x0a0d0d0a`). | ✅ PASS |
+| `Tapwire.PcapNg` | [`src/Tapwire/PcapNg.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Tapwire/PcapNg.lex.tex) | 32-bit block boundary alignment, Section Header Block, Interface & Enhanced Packet Blocks. | ✅ PASS |
+| `Tapwire.Dissector` | [`src/Tapwire/Dissector.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Tapwire/Dissector.lex.tex) | Protocol hierarchy, dissector field registry, parent bounds, recursion depth limit ($\le 32$). | ✅ PASS |
+| `Tapwire.Filter` | [`src/Tapwire/Filter.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Tapwire/Filter.lex.tex) | Display filter expression AST recursive evaluation, node count budget ($\le 64$), boolean logic. | ✅ PASS |
+| `Tapwire.Invariants` | [`src/Tapwire/Invariants.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Tapwire/Invariants.lex.tex) | Joint cross-module packet capture, alignment, dissector depth, and display filter invariants. | ✅ PASS |
 | `Enterprise.CapturePipeline` | [`src/Enterprise/CapturePipeline.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Enterprise/CapturePipeline.lex.tex) | 4-tier pipeline ordering (Acquisition $\to$ Sensors $\to$ Transport $\to$ Storage), VXLAN/GENEVE tunnel stripping. | ✅ PASS |
 | `Enterprise.Normalization` | [`src/Enterprise/Normalization.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Enterprise/Normalization.lex.tex) | ECS, UDM, and OCSF schema identity: $\mathrm{type\_uid} = \mathrm{class\_uid} \times 100 + \mathrm{activity\_id}$. | ✅ PASS |
 | `Enterprise.FileServerThreats` | [`src/Enterprise/FileServerThreats.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Enterprise/FileServerThreats.lex.tex) | Rules 1–4 thresholds: Admin share payload, traversal ($\ge 15$/10s), ransomware ($\ge 50$/60s), exfiltration ($\ge 500$/300s). | ✅ PASS |
 | `Enterprise.AlertOperations` | [`src/Enterprise/AlertOperations.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Enterprise/AlertOperations.lex.tex) | Scheduled baseline suppression, contextual threat score threshold ($\ge 80.0$), host correlation, SOAR containment. | ✅ PASS |
 | `Enterprise.Invariants` | [`src/Enterprise/Invariants.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Enterprise/Invariants.lex.tex) | End-to-end enterprise integration soundness theorem linking pipeline, threat detection, and SOAR response. | ✅ PASS |
-| `Main` | [`src/Main.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Main.lex.tex) | Top-level joint integration and packet rejection theorems uniting Wireshark and enterprise models. | ✅ PASS |
+| `Main` | [`src/Main.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Main.lex.tex) | Top-level joint integration and packet rejection theorems uniting Tapwire and enterprise models. | ✅ PASS |
 | `Foundation.Arch` | [`src/Foundation/Arch.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Foundation/Arch.lex.tex) | ISO-42010 Architecture description model & component topology. | ✅ PASS |
 | `Foundation.Qual` | [`src/Foundation/Qual.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Foundation/Qual.lex.tex) | ISO-25010 Quality characteristics & verification metrics. | ✅ PASS |
 | `Foundation.Sec` | [`src/Foundation/Sec.lex.tex`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/src/Foundation/Sec.lex.tex) | ISO-27005/ISO-27034 Security risk, threats, & controls. | ✅ PASS |
@@ -121,7 +121,7 @@ The subsystem is in a fully verified, self-governing, and committed production s
 
 | Sub-Suite | Target Property | Formal Invariant / In-Process Audit | Result |
 | :--- | :--- | :--- | :---: |
-| `SUITE-W1` | Wireshark Protocol Coverage | Capture limits, 32-bit block boundary alignment, dissector tree depth ($\le 32$), filter AST bounds. | ✅ PASS |
+| `SUITE-W1` | Tapwire Protocol Coverage | Capture limits, 32-bit block boundary alignment, dissector tree depth ($\le 32$), filter AST bounds. | ✅ PASS |
 | `SUITE-E1` | Pipeline & Normalization | 4-tier pipeline ordering, VXLAN/GENEVE tunnel decapsulation, OCSF identity formula $\mathrm{type\_uid} = \mathrm{class\_uid} \times 100 + \mathrm{activity\_id}$. | ✅ PASS |
 | `SUITE-E2` | Threat Rules & Thresholds | Rule 1 Admin share executable, Rule 2 traversal ($\ge 15$/10s), Rule 3 ransomware ($\ge 50$/60s), Rule 4 exfiltration ($\ge 500$/300s). | ✅ PASS |
 | `SUITE-E3` | Alert Ops & SOAR Response | Baseline suppression, critical score threshold ($\ge 80.0$), host correlation, automated SOAR host isolation. | ✅ PASS |
@@ -137,9 +137,9 @@ The subsystem is in a fully verified, self-governing, and committed production s
 /run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/
 ├── lexlean.toml / lexlean.lock       Canonical LexLean project specification + lockfile
 ├── prismpm.toml                      PrismPM production model configuration (build_root = "release")
-├── language/                         Closed lexicon titles (wireshark.titles + prism.arch.*)
+├── language/                         Closed lexicon titles (tapwire.titles + prism.arch.*)
 ├── src/                              14 canonical .lex.tex formal modules
-│   ├── Wireshark/                    Wireshark capture, pcapng, dissector, filter, & invariants
+│   ├── Tapwire/                    Tapwire capture, pcapng, dissector, filter, & invariants
 │   ├── Enterprise/                   Enterprise capture, normalization, threat rules, alert ops, & invariants
 │   ├── Foundation/                   PRISM ISO-42010/25010/27005 architecture/quality/security facets
 │   └── Main.lex.tex                  Top-level system integration module
@@ -231,6 +231,6 @@ All formal statements in this project are verified strictly through the Lean 4 k
 
 ## 7. Scope Boundaries
 
-This rewrite formalizes selected structural and behavioral properties; it does not parse arbitrary packet bytes, does not model the full C dissector registry, and does not claim bit-for-bit equivalence with the native Wireshark C/C++ executable. 
+This rewrite formalizes selected structural and behavioral properties; it does not parse arbitrary packet bytes, does not model the full C dissector registry, and does not claim bit-for-bit equivalence with the native Tapwire C/C++ executable. 
 
 The enterprise additions formalize capture tier ordering, schema normalization, threat rules, and alert operations; they do not run active Zeek, Suricata, Kafka, OpenSearch, SIEM, or SOAR server processes. All formal claims made by the subsystem are bounded strictly to `src/` and the governing architecture records in `docs/`.
