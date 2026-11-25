@@ -27,7 +27,7 @@ Formal specification, interactive theorem verification, enterprise network secur
 
 ## 1. Executive Summary
 
-The **Tapwire & Enterprise Capture LexLean Subsystem** provides a closed-lexicon, kernel-verified formal specification of packet capture foundations, block alignment bounds, protocol dissector hierarchies, display filter AST evaluations, and enterprise-grade threat analytics.
+The **Tapwire Enterprise Capture Subsystem** provides a closed-lexicon, kernel-verified formal specification of packet capture foundations, block alignment bounds, protocol dissector hierarchies, display filter AST evaluations, and enterprise-grade threat analytics.
 
 Created as a formal alternative to the 495 MB C/C++ Tapwire implementation, this project unifies bounded protocol mechanics with the enterprise security requirements from [`Network Capture and Alert Planning.txt`](file:///run/media/multiplic/AGI/prismagi/mount/SUBSYSTEMS/production/Network%20Capture%20and%20Alert%20Planning.txt) under the rigorous PRISM architecture:
 
